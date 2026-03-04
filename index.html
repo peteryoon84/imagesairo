@@ -1,0 +1,3305 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>imagesairo</title>
+<script>window._threeReady=false;</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"
+  onload="window._threeReady=true;if(window._onThreeReady)window._onThreeReady();"
+  onerror="console.error('three.js load failed')"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0d1a;--s1:#151528;--s2:#1d1d32;--s3:#252540;
+  --b1:#2e2e50;--b2:#3e3e66;
+  --acc:#e8ff47;--acc2:#ff6b35;--acc3:#4ecdc4;--acc4:#a78bfa;
+  --tx:#f0f0ff;--tx2:#9898c0;--tx3:#6060a0;
+  --red:#ff4560;--green:#00e396;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scrollbar-width:thin;scrollbar-color:var(--b2) var(--s1);}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--s1);}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px;}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:200;background:rgba(7,7,15,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--b1);}
+.hinner{max-width:1480px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;gap:1.25rem;height:56px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:0.05em;display:flex;align-items:center;gap:0.4rem;}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--acc);flex-shrink:0;}
+.logo-sub{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx3);letter-spacing:0.12em;}
+.tab-nav{margin-left:auto;display:flex;gap:0.2rem;}
+.tnav-btn{display:flex;align-items:center;gap:0.4rem;padding:0.4rem 1rem;border-radius:6px;border:1px solid transparent;background:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--tx3);letter-spacing:0.04em;transition:all 0.15s;white-space:nowrap;}
+.tnav-btn:hover{color:var(--tx2);background:var(--s2);}
+.tnav-btn.active{color:var(--acc);border-color:var(--b2);background:var(--s2);}
+.tnav-btn svg{width:13px;height:13px;}
+
+/* API BAR */
+.api-wrap{max-width:1480px;margin:0 auto;padding:1rem 1.5rem 0;}
+.api-card{background:var(--s1);border:1px solid var(--b1);border-left:3px solid var(--acc2);border-radius:10px;padding:0.8rem 1.1rem;display:flex;flex-direction:column;gap:0.8rem;}
+.api-row{display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;}
+.api-lbl{font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--acc2);white-space:nowrap;}
+.api-inp{flex:1;min-width:180px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:0.38rem 0.7rem;color:var(--tx);font-family:'DM Mono',monospace;font-size:0.73rem;outline:none;transition:border-color 0.2s;}
+.api-inp:focus{border-color:var(--acc2);}
+.api-st{font-family:'DM Mono',monospace;font-size:0.63rem;padding:0.22rem 0.65rem;border-radius:20px;background:var(--s2);border:1px solid var(--b1);}
+.api-st.ok{color:var(--green);border-color:var(--green);}
+.api-st.empty{color:var(--tx3);}
+.vsep{width:1px;height:16px;background:var(--b1);flex-shrink:0;}
+.model-pills{display:flex;gap:0.4rem;flex-wrap:wrap;}
+.mpill{display:flex;flex-direction:column;gap:0.1rem;padding:0.45rem 0.8rem;border-radius:8px;border:1px solid var(--b1);background:var(--s2);cursor:pointer;transition:all 0.15s;min-width:138px;}
+.mpill:hover{background:var(--s3);}
+.mpill.active{border-color:var(--acc);background:rgba(232,255,71,0.05);}
+.mpill-head{display:flex;align-items:center;gap:0.32rem;}
+.mpill-name{font-family:'DM Mono',monospace;font-size:0.67rem;font-weight:500;color:var(--tx2);}
+.mpill.active .mpill-name{color:var(--acc);}
+.mbadge{font-family:'DM Mono',monospace;font-size:0.5rem;padding:0.07rem 0.35rem;border-radius:3px;}
+.mbadge.free{background:rgba(0,227,150,0.15);color:var(--green);}
+.mbadge.fast{background:rgba(78,205,196,0.15);color:var(--acc3);}
+.mbadge.pro{background:rgba(167,139,250,0.15);color:var(--acc4);}
+.mpill-desc{font-size:0.56rem;color:var(--tx3);line-height:1.3;}
+
+/* MAIN */
+main{max-width:1480px;margin:0 auto;padding:1.1rem 1.5rem 3rem;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* ──────── SHARED LAYOUT ──────── */
+.two-col{display:grid;grid-template-columns:260px 1fr 320px;gap:1rem;align-items:start;}
+@media(max-width:960px){.two-col{grid-template-columns:1fr;}}
+
+/* CTRL CARD */
+.cc{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;margin-bottom:0.7rem;}
+.cc:last-child{margin-bottom:0;}
+.cc-hdr{display:flex;align-items:center;gap:0.4rem;padding:0.55rem 0.8rem;border-bottom:1px solid var(--b1);background:var(--s2);}
+.cc-ic{width:14px;height:14px;opacity:.6;flex-shrink:0;}
+.cc-title{font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.08em;color:var(--tx2);text-transform:uppercase;flex:1;}
+.cc-val{font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--acc);font-weight:500;}
+.cc-body{padding:0.75rem 0.8rem;}
+
+/* RESULT CARD */
+.result-card{background:var(--s1);border:1px solid var(--b1);border-radius:12px;overflow:hidden;}
+.rc-top{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0.9rem;border-bottom:1px solid var(--b1);}
+.rc-badge{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--acc3);letter-spacing:0.1em;}
+.rc-meta{font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--tx3);}
+.canvas-area{position:relative;background:var(--s2);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.canvas-area.ratio-9-16{aspect-ratio:9/16;}
+.canvas-area.ratio-1-1{aspect-ratio:1/1;}
+.canvas-area.ratio-4-3{aspect-ratio:4/3;}
+.canvas-area.ratio-2-39-1{aspect-ratio:2.39/1;}
+.canvas-area.ratio-3-4{aspect-ratio:3/4;}
+.placeholder{display:flex;flex-direction:column;align-items:center;gap:0.65rem;color:var(--tx3);}
+.placeholder svg{width:34px;height:34px;opacity:.25;}
+.placeholder p{font-family:'DM Mono',monospace;font-size:0.65rem;text-align:center;line-height:1.65;}
+.result-img{width:100%;height:100%;object-fit:contain;display:block;}
+.overlay{position:absolute;inset:0;background:rgba(7,7,15,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.7rem;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.overlay.show{opacity:1;pointer-events:all;}
+.spinner{width:26px;height:26px;border:2px solid var(--b2);border-top-color:var(--acc);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ov-txt{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--acc3);}
+.rc-info{padding:0.55rem 0.9rem;display:flex;gap:0.38rem;flex-wrap:wrap;min-height:36px;border-top:1px solid var(--b1);}
+.tag{display:inline-block;padding:0.12rem 0.42rem;border-radius:4px;font-family:'DM Mono',monospace;font-size:0.55rem;white-space:nowrap;}
+.tag-y{background:rgba(232,255,71,0.1);color:var(--acc);border:1px solid rgba(232,255,71,0.2);}
+.tag-b{background:rgba(78,205,196,0.12);color:var(--acc3);border:1px solid rgba(78,205,196,0.25);}
+.tag-o{background:rgba(255,107,53,0.12);color:var(--acc2);border:1px solid rgba(255,107,53,0.25);}
+.tag-p{background:rgba(167,139,250,0.12);color:var(--acc4);border:1px solid rgba(167,139,250,0.25);}
+.tag-g{background:rgba(0,227,150,0.08);color:var(--green);border:1px solid rgba(0,227,150,0.2);}
+
+/* HISTORY ROW */
+.hist-row{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:78px;gap:0.4rem;padding:0.65rem 0.9rem;border-top:1px solid var(--b1);max-height:270px;overflow-y:auto;align-content:start;padding-right:0.6rem;}
+.hthumb{height:78px;border-radius:5px;border:1px solid var(--b1);cursor:pointer;overflow:hidden;background:var(--s2);display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--b2);}
+.hthumb:hover{border-color:var(--acc3);}
+.hthumb.cur{border-color:var(--acc);}
+.hthumb img{width:100%;height:100%;object-fit:cover;}
+
+/* BOTTOM BTNS */
+.rc-btns{display:flex;gap:0.45rem;padding:0.6rem 0.9rem;border-top:1px solid var(--b1);}
+.btn{display:inline-flex;align-items:center;gap:0.35rem;padding:0.32rem 0.8rem;border-radius:6px;border:1px solid var(--b1);background:var(--s2);color:var(--tx2);font-family:'DM Mono',monospace;font-size:0.6rem;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.btn:hover{border-color:var(--b2);color:var(--tx);}
+.btn-t{border-color:rgba(78,205,196,0.4);color:var(--acc3);}
+.btn-t:hover{background:rgba(78,205,196,0.08);}
+.btn-r{border-color:rgba(255,69,96,0.4);color:var(--red);}
+.btn-r:hover{background:rgba(255,69,96,0.06);}
+.btn-acc{border-color:rgba(232,255,71,0.35);color:var(--acc);}
+.btn-acc:hover{background:rgba(232,255,71,0.06);}
+
+/* GENERATE BUTTON */
+.gen-btn{padding:0.55rem 1.3rem;background:var(--acc);border:none;border-radius:9px;color:#07070f;font-family:'DM Mono',monospace;font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:0.45rem;letter-spacing:0.03em;white-space:nowrap;flex-shrink:0;}
+.gen-btn:hover{background:#d4eb2a;transform:translateY(-1px);box-shadow:0 6px 24px rgba(232,255,71,0.22);}
+.gen-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;}
+.gen-btn svg{width:13px;height:13px;}
+.model-line{display:flex;align-items:center;justify-content:center;gap:0.38rem;margin-top:0.32rem;font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);}
+.mdot{width:5px;height:5px;border-radius:50%;background:var(--acc3);flex-shrink:0;}
+
+/* RANGE SLIDERS */
+.rsl{width:100%;-webkit-appearance:none;height:3px;border-radius:2px;outline:none;cursor:pointer;}
+.rsl.rb{background:linear-gradient(to right,var(--acc3),var(--acc),var(--acc2));}
+.rsl.rl{background:linear-gradient(to right,var(--acc3),var(--acc2));}
+.rsl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--acc);cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 6px rgba(232,255,71,0.35);}
+.shot-lbls{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--tx3);margin-bottom:0.38rem;}
+.shot-tag{display:inline-block;margin-top:0.42rem;padding:0.18rem 0.55rem;border-radius:4px;background:rgba(232,255,71,0.08);border:1px solid rgba(232,255,71,0.18);font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--acc);}
+
+/* PILLS / PRESET BTNS */
+.rpill{padding:0.22rem 0.6rem;border-radius:5px;border:1px solid var(--b1);background:var(--s2);font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--tx3);cursor:pointer;transition:all 0.15s;}
+.rpill:hover{border-color:var(--b2);color:var(--tx2);}
+.rpill.active{border-color:var(--acc);background:rgba(232,255,71,0.07);color:var(--acc);}
+.pr-btn{padding:0.15rem 0.42rem;border-radius:4px;border:1px solid var(--b1);background:var(--s2);font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);cursor:pointer;transition:all 0.15s;}
+.pr-btn:hover{border-color:var(--acc3);color:var(--acc3);}
+.pr-btn.active{border-color:var(--acc);color:var(--acc);background:rgba(232,255,71,0.06);}
+.pill-row{display:flex;gap:0.38rem;flex-wrap:wrap;}
+.preset-row{display:flex;flex-wrap:wrap;gap:0.28rem;margin-top:0.5rem;}
+
+/* TEXTAREA */
+.pta{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:0.6rem 0.8rem;color:var(--tx);font-family:'Noto Sans KR',sans-serif;font-size:0.83rem;line-height:1.65;resize:vertical;outline:none;min-height:82px;transition:border-color 0.2s;}
+.pta:focus{border-color:var(--acc);}
+.pta.neg-area{border-color:rgba(255,69,96,0.2);}
+.pta.neg-area:focus{border-color:var(--red);}
+.neg-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--red);opacity:.7;margin-top:0.55rem;margin-bottom:0.22rem;display:flex;align-items:center;gap:0.3rem;}
+.pt-hint{font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--tx3);margin-top:0.28rem;line-height:1.5;}
+
+/* STYLE GRID */
+.style-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.38rem;}
+.style-btn{background:var(--s2);border:1px solid var(--b1);border-radius:7px;padding:0.45rem 0.25rem;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:0.22rem;}
+.style-btn:hover{border-color:var(--b2);}
+.style-btn.active{border-color:var(--acc);background:rgba(232,255,71,0.05);}
+.style-ico{height:32px;display:flex;align-items:center;justify-content:center;}
+.style-ico svg{width:28px;height:28px;}
+.style-lbl{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--tx3);text-align:center;line-height:1.3;}
+.style-btn.active .style-lbl{color:var(--acc);}
+
+/* COMP GRID */
+.comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.35rem;}
+.comp-btn{background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:0.42rem 0.25rem;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;gap:0.2rem;}
+.comp-btn:hover{border-color:var(--b2);}
+.comp-btn.active{border-color:var(--acc);background:rgba(232,255,71,0.05);}
+.comp-ico{height:30px;display:flex;align-items:center;justify-content:center;}
+.comp-ico svg{width:28px;height:28px;}
+.comp-lbl{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--tx3);text-align:center;line-height:1.3;}
+.comp-btn.active .comp-lbl{color:var(--acc);}
+
+/* ORBITAL SPHERE */
+.orbit-outer{display:flex;flex-direction:column;gap:0.55rem;user-select:none;}
+.orbit-main{position:relative;width:100%;aspect-ratio:1;max-width:240px;min-height:220px;margin:0 auto;}
+.orbit-canvas{width:100%;height:100%;min-height:220px;display:block;cursor:grab;border-radius:10px;background:#07070f;}
+.orbit-canvas:active{cursor:grabbing;}
+.orbit-preview{position:absolute;top:6px;right:6px;width:58px;height:46px;background:rgba(10,10,20,0.85);border:1px solid rgba(78,205,196,0.35);border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.orbit-preview canvas{width:100%;height:100%;}
+.orbit-sliders{display:flex;flex-direction:column;gap:0.42rem;}
+.orbit-sl-row{display:flex;align-items:center;gap:0.5rem;}
+.orbit-sl-lbl{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:32px;flex-shrink:0;}
+.orbit-sl{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer;}
+.orbit-sl.h{background:linear-gradient(to right,var(--acc3),var(--acc));}
+.orbit-sl.v{background:linear-gradient(to right,var(--acc4),var(--acc2));}
+.orbit-sl::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--acc);cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 6px rgba(232,255,71,0.4);}
+.orbit-sl.v::-webkit-slider-thumb{background:var(--acc2);}
+.orbit-sl.r{background:linear-gradient(to right,var(--acc2),var(--acc4));}
+.orbit-sl.r::-webkit-slider-thumb{background:var(--acc4);}
+.orbit-num.r{color:var(--acc4);}
+.orbit-num.r:focus{border-color:var(--acc4);}
+.orbit-val{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--acc);width:34px;text-align:right;}
+.orbit-sl.v+.orbit-val{color:var(--acc2);}
+.orbit-num{width:46px;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:0.18rem 0.3rem;font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--acc);text-align:center;outline:none;}
+.orbit-num:focus{border-color:var(--acc);}
+.orbit-num.v{color:var(--acc2);}
+.orbit-num.v:focus{border-color:var(--acc2);}
+
+/* LIGHT CANVAS */
+.lc-wrap{margin:0 auto;cursor:crosshair;user-select:none;width:100%;max-width:240px;}
+.lc-3d{width:100%;height:100%;display:block;}
+/* Relight-style light controls */
+.light-presets{display:flex;gap:0.32rem;flex-wrap:wrap;margin-bottom:0.65rem;}
+.lp-btn{padding:0.22rem 0.65rem;border-radius:5px;border:1px solid var(--b1);background:var(--s2);font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--tx3);cursor:pointer;transition:all 0.15s;}
+.lp-btn:hover{border-color:var(--b2);color:var(--tx2);}
+.lp-btn.active{border-color:var(--acc3);background:rgba(78,205,196,0.08);color:var(--acc3);}
+.light-settings{display:flex;flex-direction:column;gap:0.55rem;margin-top:0.65rem;}
+.ls-row{display:flex;align-items:center;gap:0.6rem;}
+.ls-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx3);width:48px;flex-shrink:0;}
+.ls-sl{flex:1;-webkit-appearance:none;height:3px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer;}
+.ls-sl::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--acc);cursor:pointer;border:1.5px solid var(--bg);box-shadow:0 0 5px rgba(232,255,71,0.3);}
+.ls-val{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--acc);width:36px;text-align:right;}
+.lhard-row{display:flex;gap:0.38rem;}
+.lhard-btn{flex:1;padding:0.3rem 0;border-radius:5px;border:1px solid var(--b1);background:var(--s2);font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--tx3);cursor:pointer;transition:all 0.15s;text-align:center;}
+.lhard-btn:hover{border-color:var(--b2);}
+.lhard-btn.active{border-color:var(--acc);background:rgba(232,255,71,0.07);color:var(--acc);}
+.lcolor-row{display:flex;align-items:center;gap:0.5rem;}
+.lcolor-swatch{width:22px;height:22px;border-radius:50%;border:2px solid var(--b1);cursor:pointer;flex-shrink:0;transition:border-color 0.15s;}
+.lcolor-swatch:hover,.lcolor-swatch.active{border-color:var(--acc);}
+.lcolor-hex{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:0.28rem 0.55rem;font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--tx);outline:none;width:80px;}
+.lcolor-hex:focus{border-color:var(--acc);}
+
+/* LENS */
+.lens-ends{display:flex;justify-content:space-between;margin-bottom:0.38rem;}
+.lens-lbl{font-family:'DM Mono',monospace;font-size:0.53rem;color:var(--tx3);}
+.lens-ps{display:flex;gap:0.27rem;flex-wrap:wrap;margin-top:0.4rem;}
+
+/* ──────── EDIT TAB SPECIFIC ──────── */
+.edit-canvas-card{background:var(--s1);border:1px solid var(--b1);border-radius:12px;overflow:hidden;}
+.toolbar{display:flex;align-items:center;gap:0.32rem;padding:0.55rem 0.8rem;border-bottom:1px solid var(--b1);background:var(--s2);flex-wrap:wrap;}
+.tool-btn{width:30px;height:30px;border-radius:5px;border:1px solid var(--b1);background:var(--s2);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx3);transition:all 0.15s;flex-shrink:0;}
+.tool-btn:hover{border-color:var(--b2);color:var(--tx2);}
+.tool-btn.active{border-color:var(--acc3);background:rgba(78,205,196,0.1);color:var(--acc3);}
+.tool-btn svg{width:13px;height:13px;}
+.tsep{width:1px;height:18px;background:var(--b1);flex-shrink:0;}
+.brush-wrap{display:flex;align-items:center;gap:0.45rem;}
+.brush-lbl{font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--tx3);}
+.brush-sl{width:75px;-webkit-appearance:none;height:3px;border-radius:2px;background:var(--b2);outline:none;cursor:pointer;}
+.brush-sl::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--acc3);cursor:pointer;border:1.5px solid var(--bg);}
+.brush-val{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--acc3);width:24px;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:0.32rem;}
+
+/* CANVAS CONTAINER */
+.canvas-cont{position:relative;background:#000;line-height:0;}
+.canvas-cont canvas{max-width:100%;display:block;}
+#uploadZoneEdit{width:100%;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.875rem;cursor:pointer;border:2px dashed var(--b2);transition:all 0.2s;background:var(--s2);}
+#uploadZoneEdit:hover,#uploadZoneEdit.dov{border-color:var(--acc);background:rgba(232,255,71,0.02);}
+#uploadZoneEdit svg{width:30px;height:30px;opacity:.28;color:var(--tx3);}
+#uploadZoneEdit p{font-family:'DM Mono',monospace;font-size:0.65rem;text-align:center;line-height:1.65;color:var(--tx3);}
+
+.mask-bar{padding:0.45rem 0.8rem;border-top:1px solid var(--b1);display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;}
+.mask-bar-txt{font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--tx3);flex:1;}
+.mask-badge{font-family:'DM Mono',monospace;font-size:0.56rem;padding:0.12rem 0.45rem;border-radius:4px;}
+.mask-badge.has{background:rgba(78,205,196,0.1);color:var(--acc3);border:1px solid rgba(78,205,196,0.22);}
+.mask-badge.none{background:rgba(232,255,71,0.08);color:var(--acc);border:1px solid rgba(232,255,71,0.18);}
+
+.inpaint-bar{display:none;align-items:center;gap:0.45rem;padding:0.45rem 0.8rem;background:rgba(78,205,196,0.04);border-bottom:1px solid rgba(78,205,196,0.12);}
+.inpaint-bar.show{display:flex;}
+.ipulse{width:6px;height:6px;border-radius:50%;background:var(--acc3);animation:pulse 1.5s ease infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.inpaint-txt{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--acc3);}
+
+/* EDIT PROMPT CARD */
+.ep-card{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;margin-bottom:0.7rem;}
+.ep-hdr{display:flex;align-items:center;gap:0.38rem;padding:0.52rem 0.8rem;border-bottom:1px solid var(--b1);background:var(--s2);}
+.ep-title{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.08em;color:var(--tx2);text-transform:uppercase;flex:1;}
+.ep-badge{font-family:'DM Mono',monospace;font-size:0.53rem;padding:0.1rem 0.42rem;border-radius:4px;background:rgba(78,205,196,0.1);color:var(--acc3);border:1px solid rgba(78,205,196,0.22);}
+.ep-body{padding:0.7rem 0.8rem;}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.75rem;right:1.75rem;background:var(--s2);border:1px solid var(--b2);border-radius:9px;padding:0.65rem 1rem;font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--tx);z-index:9000;opacity:0;transform:translateY(8px);transition:all 0.2s;pointer-events:none;max-width:320px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{border-left:3px solid var(--red);color:var(--red);}
+.toast.ok{border-left:3px solid var(--green);color:var(--green);}
+
+.ref-slot{flex:1;aspect-ratio:1;background:var(--s2);border:1.5px dashed var(--b2);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;min-width:0;min-height:50px;}
+.ref-slot svg{width:14px;height:14px;color:var(--b2);}.ref-slot:hover{border-color:var(--acc);}.ref-slot:hover svg{color:var(--acc);}
+img.ref-img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:7px;}
+.ref-del{position:absolute;top:3px;right:3px;width:15px;height:15px;border-radius:50%;background:rgba(0,0,0,.7);color:#fff;font-size:8px;line-height:15px;text-align:center;cursor:pointer;opacity:0;transition:opacity .15s;z-index:3;}
+.ref-slot:hover .ref-del{opacity:1;}.ref-wide{width:100%;aspect-ratio:16/9 !important;flex:none;}
+
+.ref-label{font-family:'DM Mono',monospace;font-size:0.49rem;color:var(--tx2);letter-spacing:.04em;margin:0 0 0.3rem;text-transform:uppercase;}
+.ref-hint{color:var(--tx3);font-size:0.46rem;text-transform:none;letter-spacing:0;}
+.ref-row{display:flex;gap:0.35rem;}
+.ref-slot{flex:1;aspect-ratio:1;min-height:56px;background:rgba(255,255,255,0.025);border:1.5px dashed rgba(255,255,255,0.12);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s;position:relative;overflow:hidden;user-select:none;}
+.ref-slot:hover{border-color:rgba(232,255,71,0.5);background:rgba(232,255,71,0.04);}
+.ref-slot svg{opacity:.35;transition:opacity .15s;pointer-events:none;}
+.ref-slot:hover svg{opacity:.85;}
+img.ref-img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:7px;pointer-events:none;}
+.ref-del{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.8);color:#fff;font-size:10px;line-height:16px;text-align:center;cursor:pointer;opacity:0;transition:opacity .15s;z-index:5;}
+.ref-slot:hover .ref-del{opacity:1;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hinner">
+    <div class="logo"><div class="logo-dot"></div>imagesairo</div>
+    <div class="logo-sub">AI Image Studio</div>
+    <nav class="tab-nav">
+      <button class="tnav-btn active" id="tnav-gen" onclick="switchTab('gen')">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M7 1l1.2 3.8L12 7l-3.8 1.2L7 12l-1.2-3.8L2 7l3.8-1.2z"/></svg>GENERATE
+      </button>
+      <button class="tnav-btn" id="tnav-edit" onclick="switchTab('edit')">
+        <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8.5 2l3.5 3.5-7 7H1.5v-3.5z"/><line x1="6.5" y1="3.5" x2="10.5" y2="7.5"/></svg>EDIT + MASK
+      </button>
+    </nav>
+  </div>
+</header>
+
+<!-- API BAR -->
+<div class="api-wrap">
+  <div class="api-card">
+    <div class="api-row">
+      <span class="api-lbl">API KEY</span>
+      <input class="api-inp" type="password" id="apiKey" placeholder="Google AI Studio API Key  (AIza...)" oninput="onApiInput()">
+      <div class="api-st empty" id="apiSt">● 미입력</div>
+      <div class="vsep"></div>
+      <span class="api-lbl" style="color:var(--acc3)">MODEL</span>
+    </div>
+    <div class="model-pills">
+      <button class="mpill active" id="mp0" onclick="selModel('gemini-2.5-flash-image','mp0')">
+        <div class="mpill-head"><span class="mpill-name">나노바나나</span><span class="mbadge free">무료</span></div>
+        <div class="mpill-desc">gemini-2.5-flash-image · 500회/일 무료 · 학생용</div>
+      </button>
+      <button class="mpill" id="mp1" onclick="selModel('gemini-3.1-flash-image-preview','mp1')">
+        <div class="mpill-head"><span class="mpill-name">나노바나나 2</span><span class="mbadge fast">FAST</span></div>
+        <div class="mpill-desc">gemini-3.1-flash-image-preview · 기본 추천</div>
+      </button>
+      <button class="mpill" id="mp2" onclick="selModel('gemini-3-pro-image-preview','mp2')">
+        <div class="mpill-head"><span class="mpill-name">나노바나나 프로</span><span class="mbadge pro">PRO</span></div>
+        <div class="mpill-desc">gemini-3-pro-image-preview · 최고화질 · 유료</div>
+      </button>
+    </div>
+    <!-- GENERATE button in header -->
+    <div id="gActionWrap" style="display:flex;align-items:center;gap:0.6rem;margin-left:auto;padding:0.3rem 0;">
+      <button class="gen-btn" id="gBtn" onclick="doGenerate()" disabled style="margin:0;">
+        <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1l1.2 3.8L12 7l-3.8 1.2L7 12l-1.2-3.8L2 7l3.8-1.2z"/></svg>
+        <span id="gBtnLabel">GENERATE</span>
+      </button>
+      <div class="model-line"><div class="mdot"></div><span id="gModelTxt">나노바나나</span></div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ═══════ GENERATE TAB ═══════ -->
+<div class="tab-panel active" id="panel-gen">
+  <div class="two-col">
+
+    <!-- ■ COL 1: 프롬프트 + 비율/스타일 -->
+    <div>
+
+      <!-- 프롬프트 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 3h12M1 7h8M1 11h5"/></svg>
+          <span class="cc-title">프롬프트</span>
+        </div>
+        <div class="cc-body">
+          <textarea class="pta" id="gPrompt" rows="5" placeholder="생성할 이미지를 묘사하세요&#10;예: 빗속의 도시, 영화적 조명, 사이버펑크..." oninput="onPromptInput()"></textarea>
+          <div class="neg-lbl">
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4.5" cy="4.5" r="3.5"/><line x1="2.5" y1="4.5" x2="6.5" y2="4.5"/></svg>
+            네거티브 프롬프트
+          </div>
+          <textarea class="pta neg-area" id="gNeg" rows="2" placeholder="blurry, watermark, text..."></textarea>
+        </div>
+      </div>
+
+      <!-- 비율 + 스타일 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="1.5"/></svg>
+          <span class="cc-title">비율 / 스타일</span>
+          <span class="cc-val" id="gRatioLbl">16:9</span>
+        </div>
+        <div class="cc-body">
+          <div class="pill-row" style="margin-bottom:0.65rem">
+            <button class="rpill active" onclick="selRatio(this,'16:9')">16:9</button>
+            <button class="rpill" onclick="selRatio(this,'9:16')">9:16</button>
+            <button class="rpill" onclick="selRatio(this,'1:1')">1:1</button>
+            <button class="rpill" onclick="selRatio(this,'4:3')">4:3</button>
+            <button class="rpill" onclick="selRatio(this,'3:4')">3:4</button>
+            <button class="rpill" onclick="selRatio(this,'21:9')">21:9</button>
+          </div>
+          <div class="style-grid" id="styleGrid"></div>
+        </div>
+      </div>
+
+      <div class="cc">
+        <div class="cc-hdr"><svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="1.5"/><path d="M1 9l3-3 2 2 3-4 4 5"/></svg><span class="cc-title">레퍼런스 이미지</span></div>
+        <div class="cc-body" style="display:flex;flex-direction:column;gap:0.7rem;">
+          <div><p class="ref-label">스타일 레퍼런스 <span class="ref-hint">(최대 3장)</span></p><div class="ref-row"><div class="ref-slot" id="styleRef0" onclick="triggerRef('styleRef0')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div><div class="ref-slot" id="styleRef1" onclick="triggerRef('styleRef1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div><div class="ref-slot" id="styleRef2" onclick="triggerRef('styleRef2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div></div></div>
+          <div><p class="ref-label">모션/구도 레퍼런스 <span class="ref-hint">(인물 동세, 사물 구성)</span></p><div class="ref-row"><div class="ref-slot" id="motionRef0" onclick="triggerRef('motionRef0')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div><div class="ref-slot" id="motionRef1" onclick="triggerRef('motionRef1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div><div class="ref-slot" id="motionRef2" onclick="triggerRef('motionRef2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div></div></div>
+          <div><p class="ref-label">오브제 레퍼런스 <span class="ref-hint">(옷, 물건, 공간 요소)</span></p><div class="ref-row"><div class="ref-slot" id="objRef0" onclick="triggerRef('objRef0')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div><div class="ref-slot" id="objRef1" onclick="triggerRef('objRef1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div><div class="ref-slot" id="objRef2" onclick="triggerRef('objRef2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div></div></div>
+          <div><p class="ref-label">주제 레퍼런스 <span class="ref-hint">(참고 외모, 메인 오브제)</span></p><div class="ref-row"><div class="ref-slot" id="subjectRef0" onclick="triggerRef('subjectRef0')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div><div class="ref-slot" id="subjectRef1" onclick="triggerRef('subjectRef1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div><div class="ref-slot" id="subjectRef2" onclick="triggerRef('subjectRef2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div></div></div>
+        </div>
+      </div>
+      <input type="file" id="refFileIn" accept="image/*" style="display:none" onchange="onRefFile(event)">
+
+    </div>
+
+    <!-- ■ COL 2: 이미지 결과창 -->
+    <div>
+      <div class="result-card">
+        <div class="rc-top">
+          <div class="rc-badge">✦ GENERATE</div>
+          <div class="rc-meta" id="gMeta">—</div>
+        </div>
+        <div class="canvas-area" id="gCanvasArea">
+          <div class="placeholder" id="gPlaceholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="9" cy="10" r="2" opacity=".4"/><path d="M2 17l5-5 4 4 3-3 5 5" opacity=".4"/></svg>
+            <p>프롬프트를 입력하고<br>GENERATE를 누르세요</p>
+          </div>
+          <img id="gImg" class="result-img" style="display:none" alt="">
+          <div class="overlay" id="gOverlay">
+            <div class="spinner"></div>
+            <div class="ov-txt" id="gStTxt">생성 중...</div>
+          </div>
+        </div>
+        <div class="rc-info" id="gTags"></div>
+        <div class="hist-row">
+          <div class="hthumb" id="gh0">1</div>
+          <div class="hthumb" id="gh1">2</div>
+          <div class="hthumb" id="gh2">3</div>
+          <div class="hthumb" id="gh3">4</div>
+        </div>
+        <!-- Seed + Grid -->
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:6px 10px;
+                    background:var(--s2);border-radius:8px;border:1px solid var(--b1);">
+          <span style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--tx3);flex-shrink:0;">SEED</span>
+          <input type="number" id="gSeedInput" value="-1" min="-1" max="2147483647"
+            style="flex:1;min-width:0;background:var(--s1);border:1px solid var(--b1);border-radius:5px;
+                   color:var(--tx);font-family:'DM Mono',monospace;font-size:0.6rem;padding:3px 6px;
+                   outline:none;text-align:right;"
+            oninput="G.seed=parseInt(this.value)">
+          <button onclick="G.seed=-1;document.getElementById('gSeedInput').value='-1'"
+            style="background:var(--s1);border:1px solid var(--b1);border-radius:5px;
+                   color:var(--tx2);font-size:0.8rem;width:22px;height:22px;cursor:pointer;
+                   display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;"
+            title="랜덤">⟳</button>
+          <div style="width:1px;height:16px;background:var(--b2);flex-shrink:0;"></div>
+          <span style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--tx3);flex-shrink:0;">GRID</span>
+          <div style="display:flex;align-items:center;gap:0px;background:var(--s2);border:1px solid var(--b1);border-radius:6px;padding:1px 4px 1px 6px;height:22px;">
+            <input type="number" id="gGridW" value="1" min="1" max="8"
+              style="width:18px;background:transparent;border:none;color:var(--acc);
+                     font-family:'DM Mono',monospace;font-size:0.6rem;text-align:center;
+                     outline:none;padding:0;-moz-appearance:textfield;"
+              oninput="setGenGridWH(this.value,null)">
+            <span style="color:var(--tx3);font-size:0.58rem;font-family:'DM Mono',monospace;margin:0 1px;">×</span>
+            <input type="number" id="gGridH" value="1" min="1" max="8"
+              style="width:18px;background:transparent;border:none;color:var(--acc);
+                     font-family:'DM Mono',monospace;font-size:0.6rem;text-align:center;
+                     outline:none;padding:0;-moz-appearance:textfield;"
+              oninput="setGenGridWH(null,this.value)">
+            <div style="display:flex;flex-direction:column;gap:1px;margin-left:3px;">
+              <button onclick="adjGridH(1)"
+                style="width:11px;height:9px;background:var(--b2);border:none;border-radius:2px 2px 0 0;
+                       cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">
+                <svg width="5" height="3" viewBox="0 0 5 3" fill="none"><path d="M0 3L2.5 0L5 3" fill="currentColor" style="color:var(--tx2)"/></svg>
+              </button>
+              <button onclick="adjGridH(-1)"
+                style="width:11px;height:9px;background:var(--b2);border:none;border-radius:0 0 2px 2px;
+                       cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">
+                <svg width="5" height="3" viewBox="0 0 5 3" fill="none"><path d="M0 0L2.5 3L5 0" fill="currentColor" style="color:var(--tx2)"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="rc-btns">
+          <button class="btn" id="gDlBtn" style="display:none" onclick="dlGen()">⬇ 저장</button>
+          <button class="btn btn-t" id="gToEditBtn" style="display:none" onclick="sendToEdit()">→ 편집 탭으로</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ■ COL 3: 샷사이즈 + 구도 + 렌즈 + 카메라리그/조명 -->
+    <div>
+
+      <!-- 샷 사이즈 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="2"/><rect x="3" y="4" width="8" height="5" rx="1" stroke-opacity=".5"/></svg>
+          <span class="cc-title">샷 사이즈</span>
+          <span class="cc-val" id="gShotLbl">MS</span>
+        </div>
+        <div class="cc-body">
+          <div class="shot-lbls"><span>ECU</span><span>CU</span><span>MCU</span><span>MS</span><span>MWS</span><span>WS</span><span>EWS</span></div>
+          <input type="range" class="rsl rb" id="gShotSl" min="0" max="6" step="1" value="3" oninput="updGShot(this.value)">
+          <div><span class="shot-tag" id="gShotTag">MEDIUM SHOT — 허리 위</span></div>
+        </div>
+      </div>
+
+      <!-- 구도 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="1.5"/><line x1="5" y1="1" x2="5" y2="13" stroke-opacity=".4"/><line x1="9" y1="1" x2="9" y2="13" stroke-opacity=".4"/><line x1="1" y1="5" x2="13" y2="5" stroke-opacity=".4"/><line x1="1" y1="9" x2="13" y2="9" stroke-opacity=".4"/></svg>
+          <span class="cc-title">구도</span>
+          <span class="cc-val" id="gCompLbl">룰오브서드</span>
+        </div>
+        <div class="cc-body">
+          <div class="comp-grid" id="gCompGrid"></div>
+        </div>
+      </div>
+
+      <!-- 렌즈 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="5.5"/><circle cx="7" cy="7" r="3"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg>
+          <span class="cc-title">렌즈</span>
+          <span class="cc-val" id="gLensLbl">35mm</span>
+        </div>
+        <div class="cc-body">
+          <div class="lens-ends"><span class="lens-lbl">14mm 광각</span><span class="lens-lbl">200mm 망원</span></div>
+          <input type="range" class="rsl rl" id="gLensSl" min="14" max="200" value="35" step="1" oninput="updGLens(this.value)">
+          <div class="lens-ps">
+            <button class="pr-btn" onclick="setGLens(14)">14mm</button>
+            <button class="pr-btn" onclick="setGLens(24)">24mm</button>
+            <button class="pr-btn active" onclick="setGLens(35)">35mm</button>
+            <button class="pr-btn" onclick="setGLens(50)">50mm</button>
+            <button class="pr-btn" onclick="setGLens(85)">85mm</button>
+            <button class="pr-btn" onclick="setGLens(135)">135mm</button>
+          </div>
+        </div>
+      </div>
+
+            <div id="rigHostGen"></div>
+
+</div><!-- end col3 -->
+  </div><!-- end two-col -->
+</div>
+
+<!-- ═══════ EDIT TAB ═══════ -->
+
+<div class="tab-panel" id="panel-edit">
+  <div class="two-col">
+
+    <!-- ■ COL 1: 편집 프롬프트 + 비율/스타일 + 레퍼런스 -->
+    <div>
+
+      <!-- 편집 프롬프트 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M1 3h12M1 7h8M1 11h5"/></svg>
+          <span class="cc-title">편집 프롬프트</span>
+          <span class="cc-val" id="epBadge">전체 이미지</span>
+        </div>
+        <div class="cc-body">
+          <textarea class="pta" id="ePrompt" rows="4" placeholder="변환 내용 (선택사항)&#10;예: 마스크 영역을 붉은색 천으로 바꾸고 주름을 자연스럽게" ></textarea>
+          <div class="neg-lbl">
+            <svg width="9" height="9" viewBox="0 0 9 9" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4.5" cy="4.5" r="3.5"/><line x1="2.5" y1="4.5" x2="6.5" y2="4.5"/></svg>
+            네거티브 프롬프트
+          </div>
+          <textarea class="pta neg-area" id="eNeg" rows="2" placeholder="blurry, watermark, extra text..."></textarea>
+          <div class="pt-hint">마스크가 있으면 해당 영역만 · 없으면 전체 이미지에 적용됩니다</div>
+        </div>
+      </div>
+
+      <!-- 비율 + 스타일 (EDIT) -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="1.5"/></svg>
+          <span class="cc-title">비율 / 스타일</span>
+          <span class="cc-val" id="eRatioLbl">16:9</span>
+        </div>
+        <div class="cc-body">
+          <div class="pill-row e-ratio" style="margin-bottom:0.65rem">
+            <button class="rpill active" onclick="selERatio(this,'16:9')">16:9</button>
+            <button class="rpill" onclick="selERatio(this,'9:16')">9:16</button>
+            <button class="rpill" onclick="selERatio(this,'1:1')">1:1</button>
+            <button class="rpill" onclick="selERatio(this,'4:3')">4:3</button>
+            <button class="rpill" onclick="selERatio(this,'3:4')">3:4</button>
+            <button class="rpill" onclick="selERatio(this,'21:9')">21:9</button>
+          </div>
+          <div class="style-grid" id="styleGridE"></div>
+        </div>
+      </div>
+
+      <!-- 레퍼런스 이미지 (EDIT에서도 동일하게) -->
+      <div class="cc">
+        <div class="cc-hdr"><svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="1.5"/><path d="M1 9l3-3 2 2 3-4 4 5"/></svg><span class="cc-title">레퍼런스 이미지</span></div>
+        <div class="cc-body" style="display:flex;flex-direction:column;gap:0.7rem;">
+          <div>
+            <p class="ref-label">스타일 레퍼런스 <span class="ref-hint">(최대 3장)</span></p>
+            <div class="ref-row">
+              <div class="ref-slot" id="eStyleRef0" onclick="triggerRef('styleRef0','eStyleRef0')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+              <div class="ref-slot" id="eStyleRef1" onclick="triggerRef('styleRef1','eStyleRef1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+              <div class="ref-slot" id="eStyleRef2" onclick="triggerRef('styleRef2','eStyleRef2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+            </div>
+          </div>
+
+          <div>
+            <p class="ref-label">모션/구도 레퍼런스 <span class="ref-hint">(인물 동세, 사물 구성)</span></p>
+            <div class="ref-row">
+              <div class="ref-slot" id="eMotionRef0" onclick="triggerRef('motionRef0','eMotionRef0')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+              <div class="ref-slot" id="eMotionRef1" onclick="triggerRef('motionRef1','eMotionRef1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+              <div class="ref-slot" id="eMotionRef2" onclick="triggerRef('motionRef2','eMotionRef2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+            </div>
+          </div>
+
+          <div>
+            <p class="ref-label">오브제 레퍼런스 <span class="ref-hint">(옷, 물건, 공간 요소)</span></p>
+            <div class="ref-row">
+              <div class="ref-slot" id="eObjRef0" onclick="triggerRef('objRef0','eObjRef0')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+              <div class="ref-slot" id="eObjRef1" onclick="triggerRef('objRef1','eObjRef1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+              <div class="ref-slot" id="eObjRef2" onclick="triggerRef('objRef2','eObjRef2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+            </div>
+          </div>
+
+          <div>
+            <p class="ref-label">주제 레퍼런스 <span class="ref-hint">(참고 외모, 메인 오브제)</span></p>
+            <div class="ref-row">
+              <div class="ref-slot" id="eSubjectRef0" onclick="triggerRef('subjectRef0','eSubjectRef0')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+              <div class="ref-slot" id="eSubjectRef1" onclick="triggerRef('subjectRef1','eSubjectRef1')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+              <div class="ref-slot" id="eSubjectRef2" onclick="triggerRef('subjectRef2','eSubjectRef2')"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="7" y1="2.5" x2="7" y2="11.5"/><line x1="2.5" y1="7" x2="11.5" y2="7"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ■ COL 2: 마스크 캔버스 -->
+    <div>
+      <div class="edit-canvas-card">
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+          <button class="tool-btn active" id="toolMask" onclick="setTool('mask')" title="마스크 브러시">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="7" cy="7" r="5"/><circle cx="7" cy="7" r="2.5" fill="currentColor" opacity=".3"/></svg>
+          </button>
+          <button class="tool-btn" id="toolErase" onclick="setTool('erase')" title="마스크 지우개">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 11l8-8M9 3l2 2-6 6-2-2z"/></svg>
+          </button>
+          <div class="tsep"></div>
+          <div class="brush-wrap">
+            <span class="brush-lbl">크기</span>
+            <input type="range" class="brush-sl" id="brushSl" min="5" max="120" value="30" oninput="updBrush(this.value)">
+            <span class="brush-val" id="brushVal">30</span>
+          </div>
+          <div class="tsep"></div>
+          <button class="tool-btn" onclick="clearMask()" title="마스크 초기화">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M2 7a5 5 0 1110 0"/><polyline points="9 4 12 7 9 10"/></svg>
+          </button>
+          <div class="tb-right">
+            <label class="btn" style="cursor:pointer;font-size:0.58rem;padding:0.28rem 0.7rem">
+              <input type="file" accept="image/*" style="display:none" onchange="loadEditImg(this.files[0])">📂 이미지
+            </label>
+            <button class="btn btn-acc" id="eDlBtn" style="display:none" onclick="dlEdit()">⬇ 저장</button>
+          </div>
+        </div>
+
+        <!-- Inpaint indicator -->
+        <div class="inpaint-bar" id="inpaintBar">
+          <div class="ipulse"></div>
+          <span class="inpaint-txt">마스크 감지 — 해당 영역만 편집됩니다</span>
+        </div>
+
+        <!-- CANVAS -->
+        <div class="canvas-cont" id="editCont">
+          <div id="uploadZoneEdit"
+            ondragover="event.preventDefault();this.classList.add('dov')"
+            ondragleave="this.classList.remove('dov')"
+            ondrop="dropEdit(event)"
+            onclick="document.getElementById('editFileInp').click()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p>이미지 드래그 & 드롭<br>또는 클릭하여 업로드</p>
+          </div>
+          <input type="file" id="editFileInp" accept="image/*" style="display:none" onchange="loadEditImg(this.files[0])">
+          <canvas id="baseCanvas" style="display:none"></canvas>
+          <canvas id="maskCanvas" style="display:none;position:absolute;top:0;left:0;opacity:0.52;pointer-events:none"></canvas>
+          <div class="overlay" id="eOverlay">
+            <div class="spinner"></div>
+            <div class="ov-txt" id="eStTxt">편집 중...</div>
+          </div>
+        </div>
+
+        <div class="mask-bar" id="maskBar" style="display:none">
+          <span class="mask-bar-txt" id="maskBarTxt">마스크 없음 — 전체 이미지 변환</span>
+          <span class="mask-badge none" id="maskBadge">전체 변환</span>
+        </div>
+
+        <!-- Edit history -->
+        <div class="hist-row">
+          <div class="hthumb" id="eh0">1</div>
+          <div class="hthumb" id="eh1">2</div>
+          <div class="hthumb" id="eh2">3</div>
+          <div class="hthumb" id="eh3">4</div>
+        </div>
+        <div class="rc-btns">
+          <button class="btn btn-r" onclick="resetEdit()">↩ 원본</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ■ COL 3: 카메라/조명/구도 컨트롤 + 적용 -->
+    <div>
+
+<!-- 샷 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="2"/><rect x="3" y="4" width="8" height="5" rx="1" stroke-opacity=".5"/></svg>
+          <span class="cc-title">샷 사이즈</span>
+          <span class="cc-val" id="eShotLbl">MS</span>
+        </div>
+        <div class="cc-body">
+          <div class="shot-lbls"><span>ECU</span><span>CU</span><span>MCU</span><span>MS</span><span>MWS</span><span>WS</span><span>EWS</span></div>
+          <input type="range" class="rsl rb" id="eShotSl" min="0" max="6" step="1" value="3" oninput="updEShot(this.value)">
+          <div><span class="shot-tag" id="eShotTag">MEDIUM SHOT — 허리 위</span></div>
+        </div>
+      </div>
+
+      <!-- 구도 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="12" height="12" rx="1.5"/><line x1="5" y1="1" x2="5" y2="13" stroke-opacity=".4"/><line x1="9" y1="1" x2="9" y2="13" stroke-opacity=".4"/><line x1="1" y1="5" x2="13" y2="5" stroke-opacity=".4"/><line x1="1" y1="9" x2="13" y2="9" stroke-opacity=".4"/></svg>
+          <span class="cc-title">구도</span>
+          <span class="cc-val" id="eCompLbl">룰오브서드</span>
+        </div>
+        <div class="cc-body">
+          <div class="comp-grid" id="eCompGrid"></div>
+        </div>
+      </div>
+
+      <!-- 렌즈 -->
+      <div class="cc">
+        <div class="cc-hdr">
+          <svg class="cc-ic" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7" cy="7" r="5.5"/><circle cx="7" cy="7" r="3"/><circle cx="7" cy="7" r="1.2" fill="currentColor"/></svg>
+          <span class="cc-title">렌즈</span>
+          <span class="cc-val" id="eLensLbl">35mm</span>
+        </div>
+        <div class="cc-body">
+          <div class="lens-ends"><span class="lens-lbl">14mm 광각</span><span class="lens-lbl">200mm 망원</span></div>
+          <input type="range" class="rsl rl" id="eLensSl" min="14" max="200" value="35" step="1" oninput="updELens(this.value)">
+          <div class="lens-ps">
+            <button class="pr-btn" onclick="setELens(14)">14mm</button>
+            <button class="pr-btn" onclick="setELens(24)">24mm</button>
+            <button class="pr-btn active" onclick="setELens(35)">35mm</button>
+            <button class="pr-btn" onclick="setELens(50)">50mm</button>
+            <button class="pr-btn" onclick="setELens(85)">85mm</button>
+            <button class="pr-btn" onclick="setELens(135)">135mm</button>
+          </div>
+        </div>
+      </div>
+
+            <div id="rigHostEdit"></div>
+
+      <button class="gen-btn" id="eBtn" onclick="doEdit()" disabled>
+        <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1l1.2 3.8L12 7l-3.8 1.2L7 12l-1.2-3.8L2 7l3.8-1.2z"/></svg>
+        APPLY EDIT
+      </button>
+      <div class="model-line"><div class="mdot"></div><span id="eModelTxt">나노바나나 2</span></div>
+    </div>
+  </div>
+</div>
+</main>
+<div class="toast" id="toast"></div>
+
+
+<!-- ═══════ SHARED CAMERA/LIGHT RIG (single instance, mounted into active tab) ═══════ -->
+<!-- ═══ CAMERA RIG + MULTI-LIGHTING TABBED PANEL ═══ -->
+      <div id="rigShared" class="cc" style="padding:0;overflow:hidden;display:none;">
+
+        <!-- Tab header -->
+        <div style="display:flex;border-bottom:1px solid var(--b1);">
+          <button id="rigTabCam" onclick="switchRigTab('cam')"
+            style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.4rem;
+                   padding:0.65rem 0;font-family:'DM Mono',monospace;font-size:0.68rem;
+                   letter-spacing:0.06em;border:none;cursor:pointer;transition:all .15s;
+                   background:var(--s2);color:var(--acc);border-right:1px solid var(--b1);">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3">
+              <rect x="1" y="3" width="12" height="8" rx="1.5"/>
+              <circle cx="7" cy="7" r="2.5"/>
+              <rect x="5" y="1" width="4" height="2" rx=".8" fill="currentColor"/>
+            </svg>
+            CAMERA RIG
+          </button>
+          <button id="rigTabLight" onclick="switchRigTab('light')"
+            style="flex:1;display:flex;align-items:center;justify-content:center;gap:0.4rem;
+                   padding:0.65rem 0;font-family:'DM Mono',monospace;font-size:0.68rem;
+                   letter-spacing:0.06em;border:none;cursor:pointer;transition:all .15s;
+                   background:var(--s1);color:var(--tx3);">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3">
+              <circle cx="7" cy="6" r="2.8"/>
+              <line x1="7" y1="1" x2="7" y2="2.2"/><line x1="7" y1="9.8" x2="7" y2="13"/>
+              <line x1="1.5" y1="6" x2="2.7" y2="6"/><line x1="11.3" y1="6" x2="12.5" y2="6"/>
+              <line x1="3.1" y1="2.6" x2="4" y2="3.5"/><line x1="10" y1="8.5" x2="10.9" y2="9.4"/>
+            </svg>
+            MULTI-LIGHTING
+          </button>
+        </div>
+
+        <!-- ── CAMERA RIG TAB ── -->
+        <div id="rigPanelCam" style="display:block;">
+          <div style="padding:0.75rem 0.8rem 0.4rem;">
+
+            <!-- 3D Camera Rig Viewport -->
+            <div style="position:relative;border-radius:10px;overflow:hidden;background:#060610;
+                        border:1px solid var(--b1);margin-bottom:0.7rem;">
+              <div style="position:absolute;top:8px;left:10px;font-family:'DM Mono',monospace;
+                          font-size:0.5rem;letter-spacing:0.1em;color:rgba(255,255,255,0.3);z-index:2;">
+                CAMERA RIG PREVIEW
+              </div>
+              <div style="position:absolute;top:24px;left:10px;display:flex;align-items:center;gap:8px;z-index:2;">
+                <span style="display:flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:0.45rem;color:rgba(100,160,255,0.7);">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#64a0ff;display:inline-block;"></span>
+                  HORIZONTAL ORBIT
+                </span>
+                <span style="display:flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:0.45rem;color:rgba(200,100,255,0.7);">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#c864ff;display:inline-block;"></span>
+                  VERTICAL ELEVATION
+                </span>
+              </div>
+              <div id="gCamRig3d" style="width:100%;height:280px;position:relative;"></div>
+              <!-- Camera POV Preview (top-right inset) -->
+              <div id="gCamPreviewWrap" style="position:absolute;top:8px;right:48px;
+                   width:110px;height:82px;border-radius:6px;overflow:hidden;
+                   border:1px solid rgba(255,255,255,0.15);background:#000;z-index:3;">
+                <canvas id="gCamPreview" width="110" height="82"
+                  style="width:100%;height:100%;display:block;"></canvas>
+                <div style="position:absolute;bottom:3px;left:0;right:0;text-align:center;
+                     font-family:'DM Mono',monospace;font-size:0.38rem;
+                     color:rgba(255,255,255,0.35);letter-spacing:0.06em;">CAM POV</div>
+              </div>
+              <!-- Angle preset badge -->
+              <div style="position:absolute;top:8px;right:10px;font-family:'DM Mono',monospace;
+                          font-size:0.55rem;color:var(--acc);background:rgba(232,255,71,0.08);
+                          border:1px solid rgba(232,255,71,0.2);padding:2px 8px;border-radius:4px;z-index:2;"
+                   id="gAngleLbl">하이앵글</div>
+            </div>
+
+            <!-- Camera count -->
+            <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--tx2);white-space:nowrap;">카메라 갯수</span>
+              <input type="range" min="1" max="16" value="1" id="gCamCount"
+                style="flex:1;accent-color:var(--acc4);cursor:pointer;"
+                oninput="onCamCountChange(this.value)">
+              <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--tx);width:22px;text-align:right;" id="gCamCountVal">1</span>
+            </div>
+
+            <!-- Sliders: yaw, pitch, distance -->
+            <div style="display:flex;flex-direction:column;gap:0.45rem;">
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">가로축</span>
+                <input type="range" min="-180" max="180" value="0" id="gCamYawSl"
+                  style="flex:1;accent-color:#64a0ff;cursor:pointer;"
+                  oninput="onCamRigChange('yaw',this.value)">
+                <input type="number" min="-180" max="180" value="0" id="gCamYawNum"
+                  style="width:40px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;
+                         color:var(--tx);font-size:0.6rem;text-align:right;padding:2px 4px;outline:none;"
+                  oninput="onCamRigChange('yaw',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">°</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">세로축</span>
+                <input type="range" min="-90" max="90" value="0" id="gCamPitchSl"
+                  style="flex:1;accent-color:#c864ff;cursor:pointer;"
+                  oninput="onCamRigChange('pitch',this.value)">
+                <input type="number" min="-90" max="90" value="0" id="gCamPitchNum"
+                  style="width:40px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;
+                         color:var(--tx);font-size:0.6rem;text-align:right;padding:2px 4px;outline:none;"
+                  oninput="onCamRigChange('pitch',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">°</span>
+              </div>
+              
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">롤</span>
+                <input type="range" min="-180" max="180" value="0" id="gCamRollSl"
+                  style="flex:1;accent-color:#a78bfa;cursor:pointer;"
+                  oninput="onCamRigChange('roll',this.value)">
+                <input type="number" min="-180" max="180" value="0" id="gCamRollNum"
+                  style="width:40px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;
+                         color:var(--tx);font-size:0.6rem;text-align:right;padding:2px 4px;outline:none;"
+                  oninput="onCamRigChange('roll',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">°</span>
+              </div>
+<div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">거리</span>
+                <input type="range" min="2" max="12" value="7" id="gCamDistSl"
+                  style="flex:1;accent-color:#e8ff47;cursor:pointer;"
+                  oninput="onCamRigChange('dist',this.value)">
+                <input type="number" min="2" max="12" value="7" id="gCamDistNum"
+                  style="width:40px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;
+                         color:var(--tx);font-size:0.6rem;text-align:right;padding:2px 4px;outline:none;"
+                  oninput="onCamRigChange('dist',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;"></span>
+              </div>
+            </div>
+
+            <!-- Angle presets -->
+            <div class="preset-row" style="margin-top:0.7rem;">
+              <button class="pr-btn" onclick="setCamPreset(0,45,'하이앵글')">하이앵글</button>
+              <button class="pr-btn" onclick="setCamPreset(0,0,'아이레벨')">아이레벨</button>
+              <button class="pr-btn" onclick="setCamPreset(0,-30,'로우앵글')">로우앵글</button>
+              <button class="pr-btn" onclick="setCamPreset(0,80,'버즈아이')">버즈아이</button>
+              <button class="pr-btn" onclick="setCamPreset(0,-75,'웜즈아이')">웜즈아이</button>
+              <button class="pr-btn" onclick="setCamPreset(30,15,'더치',15)">더치</button>
+              <button class="pr-btn" onclick="setCamPreset(180,0,'후면샷')">후면샷</button>
+            </div>
+
+            <!-- Output info -->
+            <div style="margin-top:0.65rem;padding:0.45rem 0.7rem;border-radius:6px;
+                        background:rgba(232,255,71,0.04);border:1px solid rgba(232,255,71,0.1);
+                        font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--tx3);
+                        display:flex;align-items:center;gap:0.5rem;">
+              <svg width="10" height="10" viewBox="0 0 14 14" fill="none" stroke="var(--acc)" stroke-width="1.3" style="flex-shrink:0;opacity:.6">
+                <rect x="1" y="3" width="12" height="8" rx="1.5"/>
+                <circle cx="7" cy="7" r="2"/>
+              </svg>
+              <span id="gCamInfoTxt">카메라 5대 × 1장 = 총 <b style="color:var(--acc)">5장</b> 생성</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── MULTI-LIGHTING TAB ── -->
+        <div id="rigPanelLight" style="display:none;">
+          <div style="padding:0.75rem 0.8rem 0.4rem;">
+
+            <!-- 3D Lighting Rig Viewport -->
+            <div style="position:relative;border-radius:10px;overflow:hidden;background:#060610;
+                        border:1px solid var(--b1);margin-bottom:0.7rem;">
+              <div style="position:absolute;top:8px;left:10px;font-family:'DM Mono',monospace;
+                          font-size:0.5rem;letter-spacing:0.1em;color:rgba(255,255,255,0.3);z-index:2;">
+                LIGHTING RIG PREVIEW
+              </div>
+              <div style="position:absolute;top:24px;left:10px;display:flex;align-items:center;gap:8px;z-index:2;">
+                <span style="display:flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:0.45rem;color:rgba(100,160,255,0.7);">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#64a0ff;display:inline-block;"></span>
+                  HORIZONTAL ORBIT
+                </span>
+                <span style="display:flex;align-items:center;gap:3px;font-family:'DM Mono',monospace;font-size:0.45rem;color:rgba(200,100,255,0.7);">
+                  <span style="width:6px;height:6px;border-radius:50%;background:#c864ff;display:inline-block;"></span>
+                  VERTICAL ELEVATION
+                </span>
+              </div>
+              <!-- Active light color dot -->
+              <div style="position:absolute;top:8px;right:10px;z-index:2;display:flex;gap:5px;align-items:center;">
+                <div id="gLightSelector" style="display:flex;gap:4px;"></div>
+                <div id="gActiveLightDot" style="width:14px;height:14px;border-radius:50%;background:#ffffff;
+                  border:2px solid rgba(255,255,255,0.4);cursor:pointer;" onclick="cycleActiveLight()"></div>
+              </div>
+              <div id="gLightRig3d" style="width:100%;height:240px;position:relative;"></div>
+            </div>
+
+            <!-- Light count -->
+            <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.55rem;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--tx2);white-space:nowrap;">조명 갯수</span>
+              <input type="range" min="1" max="6" value="1" id="gLightCount"
+                style="flex:1;accent-color:var(--acc2);cursor:pointer;"
+                oninput="onLightCountChange(this.value)">
+              <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--tx);width:12px;text-align:right;" id="gLightCountVal">1</span>
+            </div>
+
+            <!-- Light type buttons -->
+            <div style="display:flex;gap:0.35rem;margin-bottom:0.55rem;">
+              <button id="gLTypePoint" onclick="setLightType('g','point')"
+                style="flex:1;padding:0.4rem 0;border-radius:7px;font-family:'DM Mono',monospace;
+                       font-size:0.6rem;border:1px solid;cursor:pointer;transition:all .15s;
+                       background:rgba(251,191,36,0.2);border-color:rgba(251,191,36,0.6);color:#fbbf24;">
+                Point
+              </button>
+              <button id="gLTypeSpot" onclick="setLightType('g','spot')"
+                style="flex:1;padding:0.4rem 0;border-radius:7px;font-family:'DM Mono',monospace;
+                       font-size:0.6rem;border:1px solid;cursor:pointer;transition:all .15s;
+                       background:var(--s2);border-color:var(--b1);color:var(--tx3);">
+                Spot
+              </button>
+              <button id="gLTypeArea" onclick="setLightType('g','area')"
+                style="flex:1;padding:0.4rem 0;border-radius:7px;font-family:'DM Mono',monospace;
+                       font-size:0.6rem;border:1px solid;cursor:pointer;transition:all .15s;
+                       background:var(--s2);border-color:var(--b1);color:var(--tx3);">
+                Area
+              </button>
+            </div>
+
+            <!-- Light position sliders -->
+            <div style="display:flex;flex-direction:column;gap:0.45rem;">
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">가로축</span>
+                <input type="range" min="0" max="360" value="0" id="gLRotHSl"
+                  style="flex:1;accent-color:#64a0ff;cursor:pointer;"
+                  oninput="setLightRotH('g',this.value)">
+                <input type="number" class="orbit-num" id="gLRotHNum" value="0" min="0" max="360" step="1" oninput="setLightRotH('g',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">°</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">세로축</span>
+                <input type="range" min="-90" max="90" value="30" id="gLRotVSl"
+                  style="flex:1;accent-color:#c864ff;cursor:pointer;"
+                  oninput="setLightRotV('g',this.value)">
+                <input type="number" class="orbit-num" id="gLRotVNum" value="30" min="-90" max="90" step="1" oninput="setLightRotV('g',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">°</span>
+              </div>
+            </div>
+
+            <!-- Light size options (dynamic by type) -->
+            <div id="gLightSizePanel" style="margin-bottom:0.5rem;">
+              <!-- POINT: radius -->
+              <div id="gSizePoint" style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">반경</span>
+                <input type="range" min="0.1" max="30" value="1" step="0.1" id="gLSizePointSl"
+                  style="flex:1;accent-color:#fbbf24;cursor:pointer;"
+                  oninput="setLightSize('g','point',this.value)">
+                <input type="number" class="orbit-num" id="gLSizePointNum" value="1" min="0.1" max="30" step="0.1"
+                  oninput="setLightSize('g','point',this.value)">
+              </div>
+              <!-- SPOT: angle -->
+              <div id="gSizeSpot" style="display:none;flex-direction:column;gap:0.45rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">각도</span>
+                  <input type="range" min="5" max="120" value="45" step="1" id="gLSizeSpotSl"
+                    style="flex:1;accent-color:#fbbf24;cursor:pointer;"
+                    oninput="setLightSize('g','spot',this.value)">
+                  <input type="number" class="orbit-num" id="gLSizeSpotNum" value="45" min="5" max="120" step="1"
+                    oninput="setLightSize('g','spot',this.value)">
+                  <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">°</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">감쇠</span>
+                  <input type="range" min="0" max="100" value="50" step="1" id="gLSpotPenumbraSl"
+                    style="flex:1;accent-color:#cc8844;cursor:pointer;"
+                    oninput="setLightPenumbra('g',this.value)">
+                  <input type="number" class="orbit-num" id="gLSpotPenumbraNum" value="50" min="0" max="100" step="1"
+                    oninput="setLightPenumbra('g',this.value)">
+                  <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">%</span>
+                </div>
+              </div>
+              <!-- AREA: W × H -->
+              <div id="gSizeArea" style="display:none;flex-direction:column;gap:0.45rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">폭 W</span>
+                  <input type="range" min="0.2" max="5" value="2" step="0.1" id="gLAreaWSl"
+                    style="flex:1;accent-color:#fbbf24;cursor:pointer;"
+                    oninput="setLightAreaW('g',this.value)">
+                  <input type="number" class="orbit-num" id="gLAreaWNum" value="2" min="0.2" max="5" step="0.1"
+                    oninput="setLightAreaW('g',this.value)">
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">높이 H</span>
+                  <input type="range" min="0.2" max="5" value="1.5" step="0.1" id="gLAreaHSl"
+                    style="flex:1;accent-color:#fbbf24;cursor:pointer;"
+                    oninput="setLightAreaH('g',this.value)">
+                  <input type="number" class="orbit-num" id="gLAreaHNum" value="1.5" min="0.2" max="5" step="0.1"
+                    oninput="setLightAreaH('g',this.value)">
+                </div>
+              </div>
+            </div>
+
+            <!-- LOCAL ORIENTATION -->
+            <div style="margin:0.6rem 0 0.35rem;font-family:'DM Mono',monospace;font-size:0.55rem;
+                        color:var(--acc2);letter-spacing:0.08em;">LOCAL ORIENTATION (TILT)</div>
+            <div style="display:flex;flex-direction:column;gap:0.45rem;">
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">Tilt X</span>
+                <input type="range" min="-60" max="60" value="0" id="gLTiltXSl"
+                  style="flex:1;accent-color:var(--acc2);cursor:pointer;"
+                  oninput="setLightTiltX('g',this.value)">
+                <input type="number" class="orbit-num" id="gLTiltXNum" value="0" min="-60" max="60" step="1" oninput="setLightTiltX('g',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">°</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">Tilt Y</span>
+                <input type="range" min="-60" max="60" value="0" id="gLTiltYSl"
+                  style="flex:1;accent-color:var(--acc2);cursor:pointer;"
+                  oninput="setLightTiltY('g',this.value)">
+                <input type="number" class="orbit-num" id="gLTiltYNum" value="0" min="-60" max="60" step="1" oninput="setLightTiltY('g',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;">°</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx2);width:46px;flex-shrink:0;">거리</span>
+                <input type="range" min="1" max="10" value="5" id="gLDistSl"
+                  style="flex:1;accent-color:#e8ff47;cursor:pointer;"
+                  oninput="setLightDist('g',this.value)">
+                <input type="number" class="orbit-num" id="gLDistNum" value="5" min="1" max="10" step="1" oninput="setLightDist('g',this.value)">
+                <span style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--tx3);width:8px;"></span>
+              </div>
+            </div>
+
+            <!-- Soft / Hard -->
+            <div style="margin-top:0.55rem;">
+              <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--tx3);
+                          text-transform:uppercase;letter-spacing:.08em;margin-bottom:0.3rem;">
+                LIGHT QUALITY
+              </div>
+              <div class="lhard-row">
+                <button id="gSoftBtn" class="lhard-btn active"
+                  onclick="setLightHard('g','soft')">
+                  ◎ Soft
+                </button>
+                <button id="gHardBtn" class="lhard-btn"
+                  onclick="setLightHard('g','hard')">
+                  ◉ Hard
+                </button>
+              </div>
+            </div>
+
+            <!-- Color + Bright -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.65rem;">
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--tx3);
+                            text-transform:uppercase;letter-spacing:.08em;margin-bottom:0.3rem;">COLOR</div>
+                <div style="display:flex;align-items:center;gap:0.4rem;">
+                  <input type="color" id="gColorPick" value="#ffffff"
+                    style="width:28px;height:22px;border:none;border-radius:4px;cursor:pointer;padding:0;"
+                    oninput="setLightColorPick('g',this.value)">
+                  <input type="text" id="gColorHex" value="#FFFFFF" maxlength="7"
+                    style="flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:4px;
+                           color:var(--tx);font-family:'DM Mono',monospace;font-size:0.55rem;
+                           padding:3px 6px;outline:none;"
+                    oninput="setLightColorHex('g',this.value)">
+                </div>
+              </div>
+              <div>
+                <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--tx3);
+                            text-transform:uppercase;letter-spacing:.08em;margin-bottom:0.3rem;">BRIGHT</div>
+                <div style="display:flex;align-items:center;gap:0.4rem;">
+                  <input type="range" min="1" max="10" value="5" step="1" id="gBrightSl"
+                    style="flex:1;accent-color:var(--acc2);cursor:pointer;"
+                    oninput="setLightBright('g',this.value)">
+                  <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--tx);white-space:nowrap;">
+                    <span id="gBrightVal">5</span><input type="number" id="gBrightNum" value="5" min="1" max="10" step="1" style="width:26px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;color:var(--tx);font-size:.55rem;text-align:center;padding:1px 3px;outline:none;margin-left:3px" oninput="setLightBright('g',this.value)">
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Light presets -->
+            <div class="light-presets" style="margin-top:0.6rem;">
+              <button class="lp-btn" onclick="setLightPreset('g','top')">Top</button>
+              <button class="lp-btn" onclick="setLightPreset('g','front')">Front</button>
+              <button class="lp-btn" onclick="setLightPreset('g','right')">Right</button>
+              <button class="lp-btn" onclick="setLightPreset('g','left')">Left</button>
+              <button class="lp-btn" onclick="setLightPreset('g','back')">역광</button>
+              <button class="lp-btn" onclick="setLightPreset('g','bottom')">Bottom</button>
+            </div>
+</div>
+        </div>
+      </div>
+
+      
+<!-- ═══════ /SHARED RIG ═══════ -->
+
+
+<script>
+// ════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════
+const SHOTS=[
+  {id:'ECU',name:'익스트림 클로즈업',desc:'눈·입 극세부'},
+  {id:'CU', name:'클로즈업',          desc:'얼굴 전체'},
+  {id:'MCU',name:'미디엄 클로즈업',   desc:'가슴 위'},
+  {id:'MS', name:'미디엄 샷',         desc:'허리 위'},
+  {id:'MWS',name:'미디엄 와이드',     desc:'무릎 위'},
+  {id:'WS', name:'와이드 샷',         desc:'전신 + 배경'},
+  {id:'EWS',name:'익스트림 와이드',   desc:'극광각 환경'},
+];
+const STYLES=[
+  {id:'photo',lbl:'사실적',d:'photorealistic, hyperrealistic photography, DSLR quality, sharp focus, natural lighting',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="5" width="26" height="18" rx="2"/><circle cx="14" cy="14" r="6"/><circle cx="14" cy="14" r="3.5"/><circle cx="14" cy="14" r="1.2" fill="currentColor"/></svg>`},
+  {id:'cinematic',lbl:'영화적',d:'cinematic photography, dramatic lighting, anamorphic lens flare, film grain, 35mm film look',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="5" width="26" height="18" rx="2"/><circle cx="14" cy="14" r="4.5"/><rect x="1" y="5" width="4" height="3.5" fill="currentColor" opacity=".2"/><rect x="23" y="5" width="4" height="3.5" fill="currentColor" opacity=".2"/><rect x="1" y="19.5" width="4" height="3.5" fill="currentColor" opacity=".2"/><rect x="23" y="19.5" width="4" height="3.5" fill="currentColor" opacity=".2"/></svg>`},
+  {id:'illust',lbl:'일러스트',d:'2D vector illustration, flat design, clean bold outlines, digital vector art, graphic poster style',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="22" height="22" rx="2" stroke-opacity=".3"/><path d="M7 21h14M7 15h10M7 9h7" stroke-linecap="round"/><circle cx="21" cy="9" r="2.5"/></svg>`},
+  {id:'anime',lbl:'애니',d:'anime and manga style, vibrant cel shading, expressive characters, dynamic Japanese animation aesthetic, broad anime art styles',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="14" cy="14" r="9"/><circle cx="10.5" cy="11.5" r="2.5" fill="currentColor" opacity=".6"/><circle cx="17.5" cy="11.5" r="2.5" fill="currentColor" opacity=".6"/><path d="M10 19q4 4.5 8 0" stroke-linecap="round"/><path d="M8 9q2-3 6-3t6 3" stroke-opacity=".4"/></svg>`},
+  {id:'penink',lbl:'펜화',d:'pen and ink illustration, crosshatching, bold ink lines, comic book style, graphic novel, hand-drawn linework, manga sketch',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 24L14 4L22 24" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 16h10"/><line x1="11" y1="11" x2="17" y2="11" stroke-dasharray="2,2" stroke-opacity=".5"/><path d="M4 24h20" stroke-width="2.5"/></svg>`},
+  {id:'concept',lbl:'컨셉아트',d:'concept art, oil painting style, painterly brushstrokes, impasto texture, digital oil painting, atmospheric matte painting, classical painting',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><ellipse cx="14" cy="15" rx="10" ry="7" stroke-opacity=".4"/><path d="M6 18 Q10 10 14 14 Q18 18 22 10" stroke-linecap="round"/><circle cx="14" cy="6" r="2.5" fill="currentColor" opacity=".4"/><path d="M4 22 Q14 16 24 22" stroke-opacity=".4" stroke-linecap="round"/></svg>`},
+]
+const COMPS=[
+  {id:'룰오브서드',lbl:'룰오브서드',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="26" height="26" rx="2"/><line x1="10" y1="1" x2="10" y2="27" stroke-opacity=".4"/><line x1="18" y1="1" x2="18" y2="27" stroke-opacity=".4"/><line x1="1" y1="10" x2="27" y2="10" stroke-opacity=".4"/><line x1="1" y1="18" x2="27" y2="18" stroke-opacity=".4"/><circle cx="10" cy="10" r="1.5" fill="currentColor" opacity=".5"/></svg>`},
+  {id:'중앙',lbl:'중앙',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="26" height="26" rx="2"/><line x1="14" y1="1" x2="14" y2="27" stroke-opacity=".35"/><line x1="1" y1="14" x2="27" y2="14" stroke-opacity=".35"/><circle cx="14" cy="14" r="4" stroke-opacity=".7"/></svg>`},
+  {id:'대각선',lbl:'대각선',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="26" height="26" rx="2"/><line x1="4" y1="26" x2="26" y2="4" stroke-opacity=".7"/></svg>`},
+  {id:'대칭',lbl:'대칭',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="26" height="26" rx="2"/><line x1="14" y1="1" x2="14" y2="27" stroke-dasharray="2.5,2" stroke-opacity=".5"/><rect x="3" y="9" width="8" height="10" rx="1" stroke-opacity=".5"/><rect x="17" y="9" width="8" height="10" rx="1" stroke-opacity=".5"/></svg>`},
+  {id:'프레임',lbl:'Frame',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="26" height="26" rx="2"/><rect x="5" y="5" width="18" height="18" rx="1" stroke-opacity=".5"/><rect x="10" y="10" width="8" height="8" rx="1" stroke-opacity=".4"/></svg>`},
+  {id:'리딩라인',lbl:'리딩라인',ico:`<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="1" y="1" width="26" height="26" rx="2"/><path d="M4 27 Q11 16 27 4" stroke-opacity=".7"/><path d="M4 27 Q17 20 27 11" stroke-opacity=".4"/></svg>`},
+];
+const LCOLOR_MAP={daylight:'rgba(255,248,231,',tungsten:'rgba(255,157,0,',cool:'rgba(200,232,255,',neon:'rgba(255,80,255,'};
+const LTEMP_DATA={
+  daylight:{hex:'#FFF8E7',label:'자연광 5600K',promptDesc:'natural daylight 5600K, warm white neutral light'},
+  tungsten:{hex:'#FF9D00',label:'텅스텐 3200K',promptDesc:'tungsten incandescent 3200K, warm amber orange light'},
+  cool:{hex:'#C8E8FF',label:'쿨 7000K',promptDesc:'cool daylight 7000K, cool blue-white light'},
+  neon:{hex:'#FF00FF',label:'네온 Mixed',promptDesc:'mixed neon lighting, cyberpunk magenta and cyan glow'},
+};
+
+// ════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════
+const G={ // generate tab
+  shot:3,rotation:0,tilt:0,roll:0,angleName:'아이레벨',
+  comp:'룰오브서드',lens:35,
+  lx:0,ly:-0.95,lightDir:'탑',lightHard:'soft',lightBright:80,
+  lightColorHex:'#FFFFFF',lightTemp:'daylight',
+  lightRotH:0,lightRotV:-90,
+  lightRoll:0,lightTiltX:0,lightTiltY:0,
+  lightType:'spot',lightAngle:45,lightPanelW:2,lightPanelH:1.5,
+  ratio:'16:9',style:'cinematic',
+  seed:-1,grid:'1x1',
+  curImg:null,history:[],
+};
+const E={ // edit tab
+  origImg:null,origMime:'image/jpeg',curImg:null,curMime:null,
+  shot:3,rotation:0,tilt:0,roll:0,angleName:'아이레벨',
+  comp:'룰오브서드',lens:35,
+  lx:0,ly:-0.95,lightDir:'탑',lightHard:'soft',lightBright:80,
+  lightColorHex:'#FFFFFF',lightTemp:'daylight',
+  lightRotH:0,lightRotV:-90,
+  lightRoll:0,lightTiltX:0,lightTiltY:0,
+  lightType:'spot',lightAngle:45,lightPanelW:2,lightPanelH:1.5,
+  ratio:'16:9',style:'cinematic',
+  hasMask:false,tool:'mask',brushSize:30,drawing:false,lastX:0,lastY:0,
+  history:[],
+};
+let API_KEY='', MODEL='gemini-2.5-flash-image';
+let ACTIVE_TAB='gen';
+// sphere drag state per tab
+const SD={g:{drag:false,lx:0,ly:0},e:{drag:false,lx:0,ly:0}};
+const LD={g:{drag:false},e:{drag:false}};
+
+// ════════════════════════════════════════════
+// TAB
+// ════════════════════════════════════════════
+function switchTab(t){
+  ACTIVE_TAB=t;
+  ['gen','edit'].forEach(x=>{
+    document.getElementById('tnav-'+x).classList.toggle('active',x===t);
+    document.getElementById('panel-'+x).classList.toggle('active',x===t);
+  });
+
+  // Always mount the SINGLE shared Camera/Lighting rig into the active tab,
+  // so Gen/Edit show the exact same 3D space + same tabs + same state.
+  mountRig(t);
+
+  if(t==='edit'){
+    // 핵심 옵션만 동기화 (Generate → Edit)
+    const copyFields=['shot','comp','lens','ratio','style'];
+    copyFields.forEach(k=>{ if(G[k]!==undefined) E[k]=G[k]; });
+
+    setTimeout(()=>{
+      // UI sync
+      renderCompGrid('e',E);
+      updEShot(E.shot);
+      updELens(E.lens);
+      syncERatioUI();
+      renderStyleGridE();
+    },50);
+  }
+  updatePrimaryButtons();
+}
+
+// ── Shared rig mounting (single DOM instance) ──────────────────────
+function mountRig(tab){
+  const rig = document.getElementById('rigShared');
+  if(!rig) return;
+  const host = document.getElementById(tab==='edit' ? 'rigHostEdit' : 'rigHostGen');
+  if(!host) return;
+  if(rig.parentNode !== host) host.appendChild(rig);
+  rig.style.display='block';
+
+  // ensure 3D canvases fit after DOM moved
+  setTimeout(()=>{
+    try{ resizeCamRig3d(); }catch(e){}
+    try{ drawCamRig(); }catch(e){}
+    try{ if(document.getElementById('rigPanelLight')?.style?.display==='block'){ initLC('g'); } }catch(e){}
+  },90);
+}
+
+function resizeCamRig3d(){
+  if(!_camRigRenderer || !_camRigCamera) return;
+  const el = document.getElementById('gCamRig3d');
+  if(!el) return;
+  const W = el.clientWidth || el.offsetWidth || 340;
+  const H = el.clientHeight || el.offsetHeight || 280;
+  _camRigRenderer.setSize(W,H,false);
+  _camRigCamera.aspect = W / Math.max(1,H);
+  _camRigCamera.updateProjectionMatrix();
+
+  // POV inset renderer uses its own canvas
+  if(_camRigPovRenderer){
+    const pv = document.getElementById('gCamPreview');
+    if(pv){
+      const pw = pv.clientWidth || 110;
+      const ph = pv.clientHeight || 82;
+      _camRigPovRenderer.setSize(pw,ph,false);
+    }
+  }
+}
+
+//
+// ════════════════════════════════════════════
+// API / MODEL
+// ════════════════════════════════════════════
+
+function updatePrimaryButtons(){
+  const ok = (API_KEY||'').length>10;
+  const gWrap = document.getElementById('gActionWrap');
+  const gBtn  = document.getElementById('gBtn');
+  const gLbl  = document.getElementById('gBtnLabel');
+  const eBtn  = document.getElementById('eBtn');
+
+  // In EDIT tab: show only APPLY EDIT button (bottom), hide top GENERATE
+  if(ACTIVE_TAB==='edit'){
+    if(gWrap) gWrap.style.display='none';
+    if(gBtn) gBtn.disabled = true;
+    if(gLbl) gLbl.textContent='GENERATE';
+    if(eBtn) eBtn.disabled = !(ok && !!E.origImg);
+  }else{
+    // In GENERATE tab: show only top GENERATE, keep APPLY EDIT hidden by panel anyway
+    if(gWrap) gWrap.style.display='flex';
+    if(gBtn) gBtn.disabled = !ok; // prompt 여부는 doGenerate에서 안내
+    if(gLbl) gLbl.textContent='GENERATE';
+    if(eBtn) eBtn.disabled = true;
+  }
+}
+
+function onApiInput(){
+  API_KEY=document.getElementById('apiKey').value.trim();
+  const ok=API_KEY.length>10;
+  const el=document.getElementById('apiSt');
+  el.textContent=ok?'● 입력됨':'● 미입력';
+  el.className='api-st '+(ok?'ok':'empty');
+  updatePrimaryButtons();
+}
+function selModel(id,bid){
+  MODEL=id;
+  document.querySelectorAll('.mpill').forEach(b=>b.classList.remove('active'));
+  document.getElementById(bid).classList.add('active');
+  const n={
+    'gemini-2.5-flash-image':'나노바나나 (무료)',
+    'gemini-3.1-flash-image-preview':'나노바나나 2',
+    'gemini-3-pro-image-preview':'나노바나나 프로'
+  }[id];
+  document.getElementById('gModelTxt').textContent=n;
+  document.getElementById('eModelTxt').textContent=n;
+}
+
+// ════════════════════════════════════════════
+// API CALL
+// ════════════════════════════════════════════
+// ratioStr: "16:9" etc (text-to-image only) | null (image editing)
+// imgB64: base64 image for editing | null for generation
+async function callAPI(imgB64, imgMime, promptTxt, ratioStr, seed, extraParts){
+  const parts=[];
+  // 1) Base image (edit mode)
+  if(imgB64) parts.push({inline_data:{mime_type:imgMime||'image/jpeg',data:imgB64}});
+
+  // 1.5) Extra inline parts (e.g., mask)
+  if(Array.isArray(extraParts) && extraParts.length){
+    extraParts.forEach(p=>parts.push(p));
+  }
+
+  // 2) Reference images (both GEN + EDIT)
+  //    We attach label text + image inline_data so the model can interpret each reference role.
+  const refOrder = [
+    'styleRef0','styleRef1','styleRef2',
+    'motionRef0','motionRef1','motionRef2',
+    'objRef0','objRef1','objRef2',
+    'subjectRef0','subjectRef1','subjectRef2'
+  ];
+  for(const key of refOrder){
+    const url = REF[key];
+    if(!url) continue;
+    const parsed = _parseDataUrl(url);
+    if(!parsed) continue;
+    parts.push({text:`[REFERENCE:${_refLabelForKey(key)}]`});
+    parts.push({inline_data:{mime_type:parsed.mime||'image/png', data:parsed.b64}});
+  }
+
+  // 3) Final instruction text
+  parts.push({text:promptTxt});
+
+  // Build generationConfig
+  // TEXT-TO-IMAGE: responseModalities:['IMAGE'] + imageConfig for aspect ratio
+  // IMAGE EDITING: responseModalities:['TEXT','IMAGE'] — model needs text modality to accept image input
+  const isEditing = !!imgB64;
+  const genConfig = {
+    responseModalities: isEditing ? ['TEXT','IMAGE'] : ['IMAGE'],
+    temperature: 1.0
+  };
+  if(Number.isFinite(seed)) genConfig.seed = parseInt(seed);
+  if(ratioStr){
+    genConfig.imageConfig = {aspectRatio: ratioStr};
+  }
+
+  const body = {
+    contents:[{parts, role:'user'}],
+    generationConfig: genConfig
+  };
+
+  const res=await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
+    {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}
+  );
+  const json=await res.json();
+
+  if(!res.ok){
+    console.error('API error response:', JSON.stringify(json));
+    throw new Error(json.error?.message||`HTTP ${res.status}`);
+  }
+
+  // Walk all parts looking for image data
+  const candidates = json?.candidates||[];
+  for(const cand of candidates){
+    for(const p of (cand?.content?.parts||[])){
+      if(p.inline_data?.data && p.inline_data?.mime_type?.startsWith('image/')){
+        return {data:p.inline_data.data, mime:p.inline_data.mime_type};
+      }
+      // Some responses use inlineData (camelCase)
+      if(p.inlineData?.data && p.inlineData?.mimeType?.startsWith('image/')){
+        return {data:p.inlineData.data, mime:p.inlineData.mimeType};
+      }
+    }
+  }
+
+  const finishReason = candidates?.[0]?.finishReason;
+  const safetyMsg = candidates?.[0]?.safetyRatings?.find(r=>r.blocked)?.category;
+  if(finishReason==='SAFETY'||safetyMsg){
+    throw new Error('안전 정책으로 차단됨 — 프롬프트를 수정해보세요');
+  }
+  if(finishReason==='RECITATION'){
+    throw new Error('저작권 이슈로 생성 거부됨');
+  }
+  const textPart = candidates?.[0]?.content?.parts?.find(p=>p.text);
+  if(textPart){
+    throw new Error('모델이 텍스트만 반환: '+textPart.text.slice(0,120));
+  }
+  throw new Error('이미지 없음 — 모델: '+MODEL+' / finishReason: '+(finishReason||'없음'));
+}
+
+// ════════════════════════════════════════════
+// GENERATE TAB — controls
+// ════════════════════════════════════════════
+function selRatio(el,val){
+  G.ratio=val;
+  document.querySelectorAll('#panel-gen .pill-row .rpill').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('gRatioLbl').textContent=val;
+  // Update canvas area aspect ratio class
+  const ca=document.getElementById('gCanvasArea');
+  ca.className='canvas-area';
+  const cls={'9:16':'ratio-9-16','1:1':'ratio-1-1','4:3':'ratio-4-3','3:4':'ratio-3-4','21:9':'ratio-2-39-1'};
+  if(cls[val]) ca.classList.add(cls[val]);
+}
+
+// ── EDIT TAB ratio/style (keep layout identical) ──────────────────
+function selERatio(el,val){
+  E.ratio=val;
+  document.querySelectorAll('#panel-edit .pill-row.e-ratio .rpill').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const lbl=document.getElementById('eRatioLbl'); if(lbl) lbl.textContent=val;
+}
+function syncERatioUI(){
+  const val=E.ratio||'16:9';
+  const lbl=document.getElementById('eRatioLbl'); if(lbl) lbl.textContent=val;
+  document.querySelectorAll('#panel-edit .pill-row.e-ratio .rpill').forEach(b=>{
+    b.classList.toggle('active', (b.textContent||'').trim()===val);
+  });
+}
+function renderStyleGridE(){
+  const grid=document.getElementById('styleGridE');
+  if(!grid) return;
+  grid.innerHTML=STYLES.map(s=>`
+    <button class="style-btn ${E.style===s.id?'active':''}" onclick="selStyleE('${s.id}',this)">
+      <div class="style-ico">${s.ico}</div><div class="style-lbl">${s.lbl}</div>
+    </button>`).join('');
+}
+function selStyleE(id,el){
+  E.style=id;
+  document.querySelectorAll('#styleGridE .style-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function renderStyleGrid(){
+  document.getElementById('styleGrid').innerHTML=STYLES.map(s=>`
+    <button class="style-btn ${G.style===s.id?'active':''}" onclick="selStyle('${s.id}',this)">
+      <div class="style-ico">${s.ico}</div><div class="style-lbl">${s.lbl}</div>
+    </button>`).join('');
+}
+function selStyle(id,el){
+  G.style=id;
+  document.querySelectorAll('#styleGrid .style-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('gStyleLbl'&&'gStyleLbl') // doesn't exist but harmless
+  document.getElementById('gStTxt')||0;
+}
+function updGShot(v){G.shot=parseInt(v);const s=SHOTS[v];document.getElementById('gShotLbl').textContent=s.id;document.getElementById('gShotTag').textContent=s.name+' — '+s.desc;}
+function updGLens(v){G.lens=parseInt(v);document.getElementById('gLensLbl').textContent=v+'mm';document.querySelectorAll('#panel-gen .lens-ps .pr-btn').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===G.lens));}
+// setGLens defined below
+
+// ════════════════════════════════════════════
+// LIGHT PROMPT BUILDER
+// ════════════════════════════════════════════
+function _approxDir(rotH, rotV){
+  // rotV: 0(top) → 90(front/horizon) → 180(bottom)
+  const h = ((rotH%360)+360)%360;
+  const v = Math.max(0, Math.min(180, rotV));
+  const near = (a,b,t)=>Math.abs(a-b)<=t;
+  if(near(v,0,12)) return 'top';
+  if(near(v,180,12)) return 'bottom';
+  if(near(v,90,18)){
+    if(near(h,0,18) || near(h,360,18)) return 'front';
+    if(near(h,180,18)) return 'back';
+    if(near(h,90,18)) return 'right';
+    if(near(h,270,18)) return 'left';
+  }
+  // generic spherical
+  return `azimuth ${Math.round(rotH)}°, polar ${Math.round(rotV)}°`;
+}
+
+function buildMultiLightPrompt(){
+  const lines=[];
+  (LIGHTS||[]).forEach((l, idx)=>{
+    if(l && l.enabled===false) return;
+    const type=(l?.type||'spot');
+    const hard=(l?.hard==='hard')?'hard (sharp shadows)':'soft (diffused)';
+    const brightStep=Math.max(1,Math.min(10,Math.round((l?.bright||500)/100)));
+    const dist= (l?.dist ?? 5);
+    const col=(l?.colorHex||'#FFFFFF').toUpperCase();
+    const tempDesc=(LTEMP_DATA[l?.temp||'daylight']||LTEMP_DATA.daylight).promptDesc;
+    const dir=_approxDir(l?.rotH||0, l?.rotV||90);
+    lines.push(`- Light ${idx+1}: ${type}, ${dir}, distance ${dist}, intensity ${brightStep}/10, ${hard}, color ${col} (${tempDesc})`);
+  });
+  return lines.length?lines.join('\n'):'- (no lights)';
+}
+
+// Backward-compatible wrapper
+function buildLightPrompt(){ return buildMultiLightPrompt(); }
+
+// ════════════════════════════════════════════
+// GENERATE
+// ════════════════════════════════════════════
+async function doGenerate(){
+  const prompt=document.getElementById('gPrompt').value.trim();
+  if(!prompt){toast('프롬프트를 입력해주세요','err');return;}
+  const neg=document.getElementById('gNeg').value.trim();
+  const sh=SHOTS[G.shot];
+  const style=STYLES.find(s=>s.id===G.style)||STYLES[0];
+  const lensD=G.lens<=20?'초광각':G.lens<=35?'광각':G.lens<=55?'표준':G.lens<=100?'중망원':'망원';
+
+  // How many views to generate:
+  // - CAM_RIG.count: "카메라 n대"를 실제 생성 횟수로 해석
+  // - Grid(WxH)는 결과 합성 레이아웃
+  let gridCols = G.gridW||1, gridRows = G.gridH||1;
+  let totalImgs = Math.max(1, parseInt(CAM_RIG.count||1));
+  // Expand grid if too small
+  const cap = gridCols*gridRows;
+  if(cap < totalImgs){
+    gridRows = Math.min(8, Math.max(gridRows, Math.ceil(totalImgs / gridCols)));
+    gridCols = Math.min(8, Math.max(gridCols, Math.ceil(totalImgs / gridRows)));
+    const newCap = gridCols*gridRows;
+    if(newCap < totalImgs) totalImgs = newCap;
+    setGenGridWH(gridCols, gridRows);
+    toast('GRID가 자동으로 확장되었습니다','ok');
+  }
+
+  const lightSummary = buildMultiLightPrompt();
+
+  const hasRefs = Object.keys(REF||{}).some(k=>REF[k]);
+  const refUsage = hasRefs ? `
+REFERENCE IMAGE USAGE:
+- STYLE refs → color palette / texture / rendering style
+- MOTION/COMPOSITION refs → pose / framing / layout
+- OBJECT refs → specific props / clothing / scene elements
+- SUBJECT refs → main subject identity / overall vibe
+Use references as guidance, but obey technical settings below.
+` : '';
+
+  // Seed (Gemini API supports generationConfig.seed)
+  const baseSeed = (G.seed===-1 || G.seed===undefined || isNaN(parseInt(G.seed)))
+    ? Math.floor(Math.random()*2147483647)
+    : parseInt(G.seed);
+
+  document.getElementById('gOverlay').classList.add('show');
+  document.getElementById('gBtn').disabled=true;
+
+  try{
+    const results=[];
+    for(let i=0;i<totalImgs;i++){
+      const yaw_i = (CAM_RIG.yaw||0) + (totalImgs>1 ? (360/totalImgs)*i : 0);
+      const pitch = (CAM_RIG.pitch||0);
+      const dist  = (CAM_RIG.dist||7);
+
+      const cameraRigBlock =
+`CAMERA RIG (virtual multi-camera):
+- View ${i+1}/${totalImgs}
+- Rig yaw: ${yaw_i.toFixed(1)}°
+- Rig pitch: ${pitch.toFixed(1)}°
+- Rig distance: ${dist.toFixed(2)}
+- Orbit (azimuth/tilt/roll): yaw ${yaw_i.toFixed(1)}°, pitch ${pitch.toFixed(1)}°, roll ${(CAM_RIG.roll||0).toFixed(1)}° (preset: ${CAM_RIG.presetName||'custom'})`;
+
+      const fullPrompt = `${prompt}
+${refUsage}
+PHOTOGRAPHY TECHNICAL SPECIFICATIONS:
+- Style: ${style.d}
+- Shot size: ${sh.name} (${sh.desc})
+- Camera angle preset: ${CAM_RIG.presetName||'custom'}
+- Composition: ${G.comp}
+- Lens focal length: ${G.lens}mm (${lensD})
+${cameraRigBlock}
+
+LIGHTING SPECIFICATIONS (multi-light):
+${lightSummary}
+${neg?`
+DO NOT include: ${neg}`:''}
+Render as a single coherent image. Follow camera + lighting specs as constraints.`;
+
+      // Progress message
+      const t=document.getElementById('gStTxt');
+      if(t) t.textContent = `[${i+1}/${totalImgs}] 생성 중...`;
+
+      const r = await callAPI(null,null,fullPrompt,G.ratio, baseSeed+i);
+      results.push(r);
+    }
+
+    // Show seed in input
+    G.seed=baseSeed;
+    const seedEl=document.getElementById('gSeedInput');
+    if(seedEl) seedEl.value=baseSeed;
+
+    let finalUrl;
+    if(totalImgs===1){
+      finalUrl='data:'+results[0].mime+';base64,'+results[0].data;
+      G.curImg=results[0].data;
+    } else {
+      finalUrl=await compositeGrid(results, gridCols, gridRows, G.ratio);
+      G.curImg=finalUrl.split(',')[1];
+    }
+
+    const img=document.getElementById('gImg');
+    img.src=finalUrl; img.style.display='block';
+    document.getElementById('gPlaceholder').style.display='none';
+    document.getElementById('gDlBtn').style.display='';
+    document.getElementById('gToEditBtn').style.display='';
+    document.getElementById('gMeta').textContent=
+      `${style.lbl} · ${sh.id} · ${G.ratio} · ${G.lens}mm · seed:${baseSeed} · cams:${totalImgs}`;
+    document.getElementById('gTags').innerHTML=[
+      `<span class="tag tag-y">${sh.id}</span>`,
+      `<span class="tag tag-b">${G.angleName}</span>`,
+      `<span class="tag tag-o">${G.lens}mm</span>`,
+      `<span class="tag tag-p">${G.comp}</span>`,
+      `<span class="tag tag-g">${style.lbl}</span>`,
+      `<span class="tag" style="background:rgba(100,200,100,0.1);border-color:rgba(100,200,100,0.3);color:#6dc86d">seed:${baseSeed}</span>`,
+      `<span class="tag" style="background:rgba(167,139,250,0.12);border-color:rgba(167,139,250,0.25);color:var(--acc4)">cams:${totalImgs}</span>`,
+    ].join('');
+    addGHistory(finalUrl);
+    toast('✓ 이미지 생성 완료','ok');
+  }catch(e){
+    console.error(e);
+    toast('✗ '+(e.message||e),'err');
+  }finally{
+    document.getElementById('gOverlay').classList.remove('show');
+    document.getElementById('gBtn').disabled=false;
+  }
+}
+
+// Grid compositor — draws multiple base64 images into one canvas
+async function compositeGrid(results, cols, rows, ratioStr){
+  const loadImg=(b64,mime)=>new Promise(res=>{
+    const i=new Image(); i.onload=()=>res(i);
+    i.src='data:'+mime+';base64,'+b64;
+  });
+
+  // Determine per-cell size from ratio
+  const [rw,rh]=ratioStr.split(':').map(Number);
+  const cellW = rw>=rh ? 768 : Math.round(768*(rw/rh));
+  const cellH = rw>=rh ? Math.round(768*(rh/rw)) : 768;
+
+  const imgs=await Promise.all(results.map(r=>loadImg(r.data,r.mime)));
+  const canvas=document.createElement('canvas');
+  canvas.width=cellW*cols; canvas.height=cellH*rows;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  imgs.forEach((img,i)=>{
+    const c=i%cols, r=Math.floor(i/cols);
+    ctx.drawImage(img, c*cellW, r*cellH, cellW, cellH);
+    // thin separator
+    ctx.strokeStyle='rgba(255,255,255,0.08)';ctx.lineWidth=2;
+    if(c<cols-1) ctx.strokeRect((c+1)*cellW-1,r*cellH,2,cellH);
+    if(r<rows-1) ctx.strokeRect(c*cellW,(r+1)*cellH-1,cellW,2);
+  });
+  return canvas.toDataURL('image/png');
+}
+
+function setGenGridWH(w, h) {
+  const wEl = document.getElementById('gGridW');
+  const hEl = document.getElementById('gGridH');
+  if (w !== null && w !== undefined) { const v=Math.max(1,Math.min(8,parseInt(w)||1)); wEl.value=v; G.gridW=v; }
+  if (h !== null && h !== undefined) { const v=Math.max(1,Math.min(8,parseInt(h)||1)); hEl.value=v; G.gridH=v; }
+  G.grid = (G.gridW||1)+'x'+(G.gridH||1);
+  updateCamInfo();
+}
+function adjGridH(d) {
+  const hEl = document.getElementById('gGridH');
+  const v = Math.max(1, Math.min(8, (parseInt(hEl.value)||1) + d));
+  hEl.value = v; setGenGridWH(null, v);
+}
+function setGenGrid(g){
+  const parts=g.split('x');
+  G.gridW=parseInt(parts[0])||1; G.gridH=parseInt(parts[1])||1;
+  G.grid=g;
+  const wEl=document.getElementById('gGridW'); if(wEl)wEl.value=G.gridW;
+  const hEl=document.getElementById('gGridH'); if(hEl)hEl.value=G.gridH;
+  updateCamInfo();
+}
+
+function addGHistory(url){
+  G.history.unshift(url);if(G.history.length>4)G.history.pop();
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('gh'+i);
+    if(G.history[i]){el.innerHTML=`<img src="${G.history[i]}" alt="">`;el.className='hthumb'+(i===0?' cur':'');
+      const x=i;el.onclick=()=>{document.getElementById('gImg').src=G.history[x];G.curImg=G.history[x].split(',')[1];};}
+    else{el.innerHTML=(i+1)+'';el.className='hthumb';el.onclick=null;}
+  }
+}
+function dlGen(){
+  if(!G.curImg)return;
+  const a=document.createElement('a');a.href='data:image/png;base64,'+G.curImg;
+  a.download='imagesairo-'+Date.now()+'.png';a.click();
+  toast('✓ 저장됨','ok');
+}
+function sendToEdit(){
+  if(!G.curImg)return;
+
+  // Copy the exact generation options into Edit+Mask state
+  const keys = [
+    'shot','rotation','tilt','roll','angleName',
+    'comp','lens',
+    'lx','ly',
+    'lightDir','lightHard','lightBright',
+    'lightColorHex','lightTemp',
+    'lightRotH','lightRotV','lightRoll','lightTiltX','lightTiltY',
+    'lightType','lightAngle','lightPanelW','lightPanelH',
+    'ratio','style'
+  ];
+  keys.forEach(k=>{ if(G[k]!==undefined) E[k]=G[k]; });
+
+  // Sync Edit UI controls
+  try{
+    const sh=document.getElementById('eShotSl'); if(sh) { sh.value = E.shot; updEShot(E.shot); }
+    // composition grid
+    renderCompGrid('e',E);
+    document.getElementById('eCompLbl').textContent = E.comp;
+    // lens
+    const ls=document.getElementById('eLensSl'); if(ls) { ls.value = E.lens; updELens(E.lens); }
+  }catch(_){}
+
+  // Ensure reference thumbnails are visible in Edit tab too
+  ['styleRef0','styleRef1','styleRef2','motionRef0','motionRef1','motionRef2','objRef0','objRef1','objRef2','subjectRef0','subjectRef1','subjectRef2']
+    .forEach(k=>{ if(REF[k]) _renderRefKey(k); });
+
+  E.origImg=G.curImg;E.origMime='image/png';E.curImg=null;E.curMime=null;updatePrimaryButtons();
+  const img=new Image();
+  img.onload=()=>{
+    const bc=document.getElementById('baseCanvas'),mc=document.getElementById('maskCanvas');
+    bc.width=img.width;bc.height=img.height;
+    mc.width=img.width;mc.height=img.height;
+    bc.style.width=mc.style.width='100%';
+    bc.getContext('2d').drawImage(img,0,0);
+    bc.style.display='block';mc.style.display='block';
+    document.getElementById('uploadZoneEdit').style.display='none';
+    document.getElementById('maskBar').style.display='flex';
+    document.getElementById('eDlBtn').style.display='';
+    clearMask();setupMaskEvents();
+    if(API_KEY.length>10) document.getElementById('eBtn').disabled=false;
+  };
+  img.src='data:image/png;base64,'+G.curImg;
+  switchTab('edit');toast('편집 탭으로 전송됨');
+}
+
+// ════════════════════════════════════════════
+// EDIT TAB — image load
+// ════════════════════════════════════════════
+function loadEditImg(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    E.origMime=file.type||'image/jpeg';
+    E.origImg=e.target.result.split(',')[1];
+    E.curImg=null;E.curMime=null;updatePrimaryButtons();
+    const img=new Image();
+    img.onload=()=>{
+      const bc=document.getElementById('baseCanvas'),mc=document.getElementById('maskCanvas');
+      bc.width=img.width;bc.height=img.height;
+      mc.width=img.width;mc.height=img.height;
+      bc.style.width=mc.style.width='100%';
+      bc.getContext('2d').drawImage(img,0,0);
+      bc.style.display='block';mc.style.display='block';
+      document.getElementById('uploadZoneEdit').style.display='none';
+      document.getElementById('maskBar').style.display='flex';
+      document.getElementById('eDlBtn').style.display='';
+      clearMask();setupMaskEvents();
+      if(API_KEY.length>10) document.getElementById('eBtn').disabled=false;
+    };
+    img.src=e.target.result;
+    toast('✓ 이미지 로드됨','ok');
+  };
+  r.readAsDataURL(file);
+}
+function dropEdit(ev){ev.preventDefault();document.getElementById('uploadZoneEdit').classList.remove('dov');const f=ev.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))loadEditImg(f);}
+function resetEdit(){
+  if(!E.origImg)return;
+  E.curImg=null;E.curMime=null;
+  const img=new Image();
+  img.onload=()=>{const bc=document.getElementById('baseCanvas');bc.getContext('2d').drawImage(img,0,0);clearMask();};
+  img.src='data:'+E.origMime+';base64,'+E.origImg;
+  toast('원본으로 복원됨');
+}
+function dlEdit(){
+  const bc=document.getElementById('baseCanvas');
+  if(!bc.width)return;
+  const a=document.createElement('a');a.href=bc.toDataURL('image/png');
+  a.download='imagesairo-edit-'+Date.now()+'.png';a.click();
+  toast('✓ 저장됨','ok');
+}
+
+
+function addEHistory(url){
+  E.history = E.history || [];
+  E.history.unshift(url);
+  if(E.history.length>4) E.history.pop();
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('eh'+i);
+    if(!el) continue;
+    if(E.history[i]){
+      el.innerHTML=`<img src="${E.history[i]}" alt="">`;
+      el.className='hthumb'+(i===0?' cur':'');
+      const x=i;
+      el.onclick=()=>{ loadEditFromUrl(E.history[x]); };
+    } else {
+      el.innerHTML=(i+1)+'';
+      el.className='hthumb';
+      el.onclick=null;
+    }
+  }
+}
+
+function loadEditFromUrl(url){
+  // History selection becomes the current base for subsequent edits
+  const parsed=_parseDataUrl(url);
+  if(parsed){E.curImg=parsed.b64;E.curMime=parsed.mime;}
+  const img=new Image();
+  img.onload=()=>{
+    const bc=document.getElementById('baseCanvas');
+    if(!bc) return;
+    bc.width=img.width; bc.height=img.height;
+    bc.getContext('2d').drawImage(img,0,0);
+    bc.style.display='block';
+    document.getElementById('uploadZoneEdit').style.display='none';
+    document.getElementById('maskBar').style.display='flex';
+    document.getElementById('eDlBtn').style.display='';
+    // keep mask as-is? default clear to avoid accidental inpaint mismatch
+    clearMask();
+    E.curImg = url.split(',')[1] || null;
+  };
+  img.src=url;
+}
+
+function getMaskPngB64(){
+  if(!E.hasMask) return null;
+  const mc=document.getElementById('maskCanvas');
+  if(!mc || !mc.width) return null;
+  const src=mc.getContext('2d').getImageData(0,0,mc.width,mc.height).data;
+  const tmp=document.createElement('canvas');
+  tmp.width=mc.width; tmp.height=mc.height;
+  const ctx=tmp.getContext('2d');
+  const out=ctx.createImageData(mc.width,mc.height);
+  for(let i=0;i<src.length;i+=4){
+    const a=src[i+3];
+    const v=a>10?255:0;
+    out.data[i]=v; out.data[i+1]=v; out.data[i+2]=v; out.data[i+3]=255;
+  }
+  ctx.putImageData(out,0,0);
+  return tmp.toDataURL('image/png').split(',')[1];
+}
+
+async function doEdit(){
+  if(!E.origImg){toast('편집할 이미지를 먼저 업로드하세요','err');return;}
+  if(API_KEY.length<=10){toast('API KEY를 먼저 입력하세요','err');return;}
+
+  // Use current edited image as base if available (iterative editing)
+  const baseB64 = E.curImg || E.origImg;
+  const baseMime = E.curMime || E.origMime;
+
+  const userEdit=document.getElementById('ePrompt')?.value?.trim()||'';
+  const neg=document.getElementById('eNeg')?.value?.trim()||'';
+  const sh=SHOTS[E.shot];
+  const style=STYLES.find(s=>s.id===E.style)||STYLES[0];
+  const lensD=E.lens<=20?'초광각':E.lens<=35?'광각':E.lens<=55?'표준':E.lens<=100?'중망원':'망원';
+  const lightSummary=buildMultiLightPrompt();
+  const maskNote = E.hasMask
+    ? "A mask image is provided. White pixels indicate the ONLY region you may modify. Keep black region unchanged."
+    : "No mask is provided. You may transform the whole image, but preserve identity and overall structure unless instructed.";
+
+  const hasRefs = Object.keys(REF||{}).some(k=>REF[k]);
+  const refUsage = hasRefs ? `
+REFERENCE IMAGE USAGE:
+- STYLE refs → color palette / texture / rendering style
+- MOTION/COMPOSITION refs → pose / framing / layout
+- OBJECT refs → specific props / clothing / scene elements
+- SUBJECT refs → main subject identity / overall vibe
+Use references as guidance, but obey technical settings below.
+` : '';
+
+  const baseSeed = Math.floor(Math.random()*2147483647);
+
+  const cameraRigBlock =
+`CAMERA RIG (virtual):
+- Rig yaw: ${(CAM_RIG.yaw||0).toFixed(1)}°
+- Rig pitch: ${(CAM_RIG.pitch||0).toFixed(1)}°
+- Rig distance: ${(CAM_RIG.dist||7).toFixed(2)}
+- Orbit (azimuth/tilt/roll): yaw ${(CAM_RIG.yaw||0).toFixed(1)}°, pitch ${(CAM_RIG.pitch||0).toFixed(1)}°, roll ${(CAM_RIG.roll||0).toFixed(1)}° (preset: ${CAM_RIG.presetName||'custom'})`;
+
+  const fullPrompt =
+`You are editing an existing image.
+${maskNote}
+${userEdit?`EDIT REQUEST:
+${userEdit}
+`:''}
+${refUsage}
+PHOTOGRAPHY TECHNICAL SPECIFICATIONS (apply as constraints):
+- Style: ${style.d}
+- Shot size: ${sh.name} (${sh.desc})
+- Camera angle preset: ${CAM_RIG.presetName||'custom'}
+- Composition: ${E.comp}
+- Lens focal length: ${E.lens}mm (${lensD})
+- Output aspect ratio (best effort): ${E.ratio}
+${cameraRigBlock}
+
+LIGHTING SPECIFICATIONS (multi-light):
+${lightSummary}
+
+Return a SINGLE edited image. Preserve unmasked regions exactly when a mask is provided.
+${neg?`\nDO NOT include: ${neg}`:''}`;
+
+  // Extra parts: mask image (optional)
+  const extraParts=[];
+  const maskB64=getMaskPngB64();
+  if(maskB64){
+    extraParts.push({text:'[MASK] White=edit, Black=keep'});
+    extraParts.push({inline_data:{mime_type:'image/png', data:maskB64}});
+  }
+
+  document.getElementById('eOverlay').classList.add('show');
+  document.getElementById('eBtn').disabled=true;
+  try{
+    const r = await callAPI(baseB64, baseMime, fullPrompt, E.ratio, baseSeed, extraParts);
+    const url='data:'+r.mime+';base64,'+r.data;
+
+    // draw to base canvas
+    const img=new Image();
+    img.onload=()=>{
+      const bc=document.getElementById('baseCanvas');
+      bc.width=img.width; bc.height=img.height;
+      bc.getContext('2d').drawImage(img,0,0);
+      bc.style.display='block';
+      document.getElementById('uploadZoneEdit').style.display='none';
+      document.getElementById('maskBar').style.display='flex';
+      document.getElementById('eDlBtn').style.display='';
+      E.curImg=r.data;
+      E.curMime=r.mime;
+      addEHistory(url);
+      clearMask();
+      toast('✓ 편집 완료','ok');
+    };
+    img.src=url;
+  }catch(e){
+    console.error(e);
+    toast('✗ '+(e.message||e),'err');
+  }finally{
+    document.getElementById('eOverlay').classList.remove('show');
+    document.getElementById('eBtn').disabled=!(API_KEY.length>10 && E.origImg);
+  }
+}
+
+
+// ════════════════════════════════════════════
+// MASK CANVAS
+// ════════════════════════════════════════════
+let maskEventsSetup=false;
+function setupMaskEvents(){
+  if(maskEventsSetup)return;maskEventsSetup=true;
+  const mc=document.getElementById('maskCanvas');
+  mc.style.pointerEvents='all';
+  mc.addEventListener('mousedown',e=>{E.drawing=true;const p=mpos(e);E.lastX=p.x;E.lastY=p.y;drawM(p.x,p.y,p.x,p.y);});
+  mc.addEventListener('mousemove',e=>{if(!E.drawing)return;const p=mpos(e);drawM(E.lastX,E.lastY,p.x,p.y);E.lastX=p.x;E.lastY=p.y;});
+  window.addEventListener('mouseup',()=>E.drawing=false);
+  mc.addEventListener('touchstart',e=>{e.preventDefault();E.drawing=true;const p=mpos(e.touches[0]);E.lastX=p.x;E.lastY=p.y;drawM(p.x,p.y,p.x,p.y);},{passive:false});
+  mc.addEventListener('touchmove',e=>{e.preventDefault();if(!E.drawing)return;const p=mpos(e.touches[0]);drawM(E.lastX,E.lastY,p.x,p.y);E.lastX=p.x;E.lastY=p.y;},{passive:false});
+  window.addEventListener('touchend',()=>E.drawing=false);
+}
+function mpos(e){
+  const mc=document.getElementById('maskCanvas');
+  const r=mc.getBoundingClientRect();
+  const sx=mc.width/r.width,sy=mc.height/r.height;
+  return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};
+}
+function drawM(x1,y1,x2,y2){
+  const mc=document.getElementById('maskCanvas');
+  const ctx=mc.getContext('2d');
+  ctx.globalCompositeOperation=E.tool==='erase'?'destination-out':'source-over';
+  ctx.strokeStyle='rgba(78,205,196,0.9)';
+  ctx.lineWidth=E.brushSize;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  checkMask();
+}
+function checkMask(){
+  const mc=document.getElementById('maskCanvas');
+  const d=mc.getContext('2d').getImageData(0,0,mc.width,mc.height).data;
+  let has=false;for(let i=3;i<d.length;i+=4){if(d[i]>10){has=true;break;}}
+  E.hasMask=has;
+  document.getElementById('inpaintBar').classList.toggle('show',has);
+  document.getElementById('maskBarTxt').textContent=has?'마스크 영역 감지됨 — 해당 부분만 변환됩니다':'마스크 없음 — 전체 이미지 변환';
+  const bd=document.getElementById('maskBadge');
+  bd.textContent=has?'마스크 인페인팅':'전체 변환';
+  bd.className='mask-badge '+(has?'has':'none');
+  const epb=document.getElementById('epBadge');
+  epb.textContent=has?'마스크 영역':'전체 이미지';
+  epb.style.background=has?'rgba(78,205,196,0.1)':'rgba(232,255,71,0.08)';
+  epb.style.color=has?'var(--acc3)':'var(--acc)';
+  epb.style.borderColor=has?'rgba(78,205,196,0.22)':'rgba(232,255,71,0.18)';
+}
+function clearMask(){
+  const mc=document.getElementById('maskCanvas');
+  if(mc.width) mc.getContext('2d').clearRect(0,0,mc.width,mc.height);
+  E.hasMask=false;
+  document.getElementById('inpaintBar').classList.remove('show');
+  document.getElementById('maskBarTxt').textContent='마스크 없음 — 전체 이미지 변환';
+  document.getElementById('maskBadge').textContent='전체 변환';
+  document.getElementById('maskBadge').className='mask-badge none';
+  const epb=document.getElementById('epBadge');
+  if(epb){
+    epb.textContent='전체 이미지';
+    epb.style.background='rgba(232,255,71,0.08)';
+    epb.style.color='var(--acc)';
+    epb.style.borderColor='rgba(232,255,71,0.18)';
+  }
+}
+function setTool(t){
+  E.tool=t;
+  document.getElementById('toolMask').classList.toggle('active',t==='mask');
+  document.getElementById('toolErase').classList.toggle('active',t==='erase');
+}
+function updBrush(v){E.brushSize=parseInt(v);document.getElementById('brushVal').textContent=v;}
+
+// ════════════════════════════════════════════
+// EDIT TAB — controls
+// ════════════════════════════════════════════
+function renderCompGrid(prefix,state){
+  document.getElementById(prefix+'CompGrid').innerHTML=COMPS.map(c=>`
+    <button class="comp-btn ${state.comp===c.id?'active':''}" onclick="selComp('${prefix}','${c.id}',this)">
+      <div class="comp-ico">${c.ico}</div><div class="comp-lbl">${c.lbl}</div>
+    </button>`).join('');
+}
+function selComp(prefix,id,el){
+  const s=prefix==='g'?G:E;s.comp=id;
+  document.querySelectorAll('#'+prefix+'CompGrid .comp-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(prefix+'CompLbl').textContent=id;
+}
+function updEShot(v){E.shot=parseInt(v);const s=SHOTS[v];document.getElementById('eShotLbl').textContent=s.id;document.getElementById('eShotTag').textContent=s.name+' — '+s.desc;}
+function updELens(v){E.lens=parseInt(v);document.getElementById('eLensLbl').textContent=v+'mm';document.querySelectorAll('#panel-edit .lens-ps .pr-btn').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===E.lens));}
+function setELens(v){E.lens=v;document.getElementById('eLensSl').value=v;updELens(v);}
+
+
+// ════════════════════════════════════════════════════════════════
+// PREVIEW SYSTEM v4
+// Reference style: perspective grid floor + orbit ring + arc + frustum/light marker
+// Camera tab: blue 360° orbit ring, purple elevation arc, frustum marker
+// Light tab: same ring/arc structure + glow sphere marker + beam
+// ════════════════════════════════════════════════════════════════
+
+
+// ── Three.js 3D Light Gizmo ──────────────────────────────────────
+
+function mkGizmo(containerId, prefix) {
+  const THREE = window.THREE;
+  if (!THREE) { window._onThreeReady = () => mkGizmo(containerId, prefix); return null; }
+  const el = document.getElementById(containerId);
+  if (!el) return null;
+  while (el.firstChild) el.removeChild(el.firstChild);
+
+  const W = el.offsetWidth || 300, H = el.offsetHeight || 220;
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(W, H);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.setClearColor(0x0a0a18, 1);
+  el.appendChild(renderer.domElement);
+  renderer.domElement.style.cssText = 'width:100%;height:100%;display:block;';
+
+  const scene = new THREE.Scene();
+
+  // Tight isometric camera — FOV 22, dist 9 keeps subject ~40% of frame
+  const camera = new THREE.PerspectiveCamera(22, W / H, 0.1, 100);
+  const ISO_R = 9, ISO_Y = Math.PI / 4, ISO_P = Math.atan(1 / Math.sqrt(2));
+  camera.position.set(
+    ISO_R * Math.cos(ISO_P) * Math.sin(ISO_Y),
+    ISO_R * Math.sin(ISO_P),
+    ISO_R * Math.cos(ISO_P) * Math.cos(ISO_Y)
+  );
+  camera.lookAt(0, 0, 0);
+
+  // Tight grid: ±2 units, 0.5 spacing
+  const gMat = new THREE.LineBasicMaterial({ color: 0x1e1e44, transparent: true, opacity: 0.85 });
+  for (let i = -2; i <= 2; i += 0.5) {
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(
+      [new THREE.Vector3(-2,0,i), new THREE.Vector3(2,0,i)]), gMat));
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(
+      [new THREE.Vector3(i,0,-2), new THREE.Vector3(i,0,2)]), gMat));
+  }
+
+  // Direction labels at ±1.6 — well within viewport
+  const mkLbl = (txt, col) => {
+    const cv = document.createElement('canvas'); cv.width = 96; cv.height = 36;
+    const ctx = cv.getContext('2d');
+    ctx.font = 'bold 15px monospace'; ctx.fillStyle = col;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(txt, 48, 18);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(cv), transparent: true, depthTest: false }));
+    sp.scale.set(0.75, 0.28, 1);
+    return sp;
+  };
+  const LD = 1.6;
+  [[0,0.05,LD,'FRONT','#4488ff'],[0,0.05,-LD,'BACK','#6666aa'],
+   [LD,0.05,0,'RIGHT','#44bb77'],[-LD,0.05,0,'LEFT','#44bb77'],
+   [0,1.25,0,'TOP','#aaaacc']].forEach(([x,y,z,t,c])=>{
+    const l=mkLbl(t,c); l.position.set(x,y,z); scene.add(l);
+  });
+
+  // Subject box (unit cube)
+  const boxMat = new THREE.MeshStandardMaterial({ color:0x334466, roughness:0.55, metalness:0.2 });
+  const box = new THREE.Mesh(new THREE.BoxGeometry(1,1,1), boxMat);
+  box.castShadow = true; box.receiveShadow = true; scene.add(box);
+  // Front face tint
+  const ff = new THREE.Mesh(new THREE.PlaneGeometry(0.85,0.85),
+    new THREE.MeshBasicMaterial({color:0x2244aa,transparent:true,opacity:0.28,side:THREE.DoubleSide}));
+  ff.position.set(0,0,0.502); scene.add(ff);
+  // Edges
+  scene.add(new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),
+    new THREE.LineBasicMaterial({color:0x5566aa,transparent:true,opacity:0.7})));
+  // Ground
+  const gnd = new THREE.Mesh(new THREE.PlaneGeometry(8,8), new THREE.MeshLambertMaterial({color:0x1a1a35}));
+  gnd.rotation.x = -Math.PI/2; gnd.position.y = -0.5; gnd.receiveShadow=true; scene.add(gnd);
+
+  // Ambient
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+  // Orbit rings (decorative)
+  const mkRing=(R,col,axis)=>{
+    const pts=[];
+    for(let i=0;i<=64;i++){const a=(i/64)*Math.PI*2;
+      pts.push(axis==='h'?new THREE.Vector3(Math.cos(a)*R,0,Math.sin(a)*R)
+                         :new THREE.Vector3(0,Math.sin(a)*R,Math.cos(a)*R));}
+    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.18}));
+  };
+  scene.add(mkRing(2.2,0x4466ff,'h'));
+  scene.add(mkRing(2.2,0xaa44ff,'v'));
+
+  // Dynamic lights
+  let dynLights = [], gizmoGroup = null;
+
+  // dist 1-10 → scene radius 0.9-3.2 (always visible)
+  const distToR = d => 0.7 + ((d||5)-1)/9 * 2.0;
+
+  const d2r = d => d * Math.PI / 180;
+
+  function buildMulti(lights, activeIdx) {
+    if (gizmoGroup) scene.remove(gizmoGroup);
+    gizmoGroup = new THREE.Group();
+    dynLights.forEach(l => { scene.remove(l); if(l.target) scene.remove(l.target); }); dynLights = [];
+
+    lights.forEach((l, i) => {
+      const radius = distToR(l.dist);
+      const phi2 = d2r(90 - (l.rotV||0));
+      const th2  = d2r(l.rotH||0);
+      const px = radius * Math.sin(phi2) * Math.cos(th2);
+      const py = radius * Math.cos(phi2);
+      const pz = radius * Math.sin(phi2) * Math.sin(th2);
+      const pos = new THREE.Vector3(px, py, pz);
+
+      const hexInt = parseInt((l.colorHex||'#ffffff').replace('#',''), 16);
+      const nb = (l.bright||100) / 100;
+      const isActive = i === activeIdx;
+
+      // THREE light — type determines illumination character
+      let threeLight;
+      const d2rL = d => d * Math.PI / 180;
+      const ltype2 = l.type || 'point';
+      if (ltype2 === 'spot') {
+        // hard → penumbra 0 (crisp), soft → penumbra from slider
+        const hardMode = l.hard === 'hard';
+        const penumbraVal = hardMode ? 0 : Math.max(0, Math.min(0.99, (l.penumbra||50)/100));
+        const sl = new THREE.SpotLight(hexInt, Math.pow(nb,1.4)*10, 10,
+          d2rL((l.angle||45)/2),
+          penumbraVal,
+          hardMode ? 2.5 : 1.2
+        );
+        sl.position.copy(pos);
+        // Apply tiltX/Y to spotlight direction
+        // Base direction: from pos toward origin
+        const baseDir = new THREE.Vector3().sub(pos).normalize();
+        const upv2 = Math.abs(baseDir.y)>0.99 ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,1,0);
+        const tq = new THREE.Quaternion().setFromRotationMatrix(
+          new THREE.Matrix4().lookAt(pos, new THREE.Vector3(), upv2));
+        const ro2=l.roll||0, tx2=l.tiltX||0, ty2=l.tiltY||0;
+        if(ro2) tq.premultiply(new THREE.Quaternion().setFromAxisAngle(baseDir, d2rL(ro2)));
+        if(tx2){const ax2=new THREE.Vector3(1,0,0).applyQuaternion(tq);
+          tq.premultiply(new THREE.Quaternion().setFromAxisAngle(ax2, d2rL(tx2)));}
+        if(ty2){const ay2=new THREE.Vector3(0,1,0).applyQuaternion(tq);
+          tq.premultiply(new THREE.Quaternion().setFromAxisAngle(ay2, d2rL(ty2)));}
+        // Local -Z axis of the tilted quaternion = light direction
+        const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(tq);
+        const targetPos = pos.clone().add(fwd.multiplyScalar(5));
+        sl.target.position.copy(targetPos);
+        sl.castShadow = isActive;
+        sl.shadow.mapSize.width = 512; sl.shadow.mapSize.height = 512;
+        scene.add(sl); scene.add(sl.target);
+        dynLights.push(sl, sl.target);
+        threeLight = sl;
+      } else if (ltype2 === 'area') {
+        // RectAreaLight — no shadows in three.js but soft wrap
+        let RectAreaLight = THREE.RectAreaLight;
+        if (!RectAreaLight) {
+          // Fallback to PointLight if RectAreaLight unavailable
+          const al = new THREE.PointLight(hexInt, nb*3, 18);
+          al.position.copy(pos); scene.add(al); dynLights.push(al); threeLight=al;
+        } else {
+          const pw = (l.panelW||2)*0.9, ph = (l.panelH||1.5)*0.9;
+          const al = new RectAreaLight(hexInt, Math.pow(nb,1.3)*12, pw, ph);
+          al.position.copy(pos);
+          // Apply tilt to RectAreaLight orientation
+          const aBase = new THREE.Vector3().sub(pos).normalize();
+          const aUp = Math.abs(aBase.y)>0.99 ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,1,0);
+          const aq = new THREE.Quaternion().setFromRotationMatrix(
+            new THREE.Matrix4().lookAt(pos, new THREE.Vector3(), aUp));
+          const aro=l.roll||0, atx=l.tiltX||0, aty=l.tiltY||0;
+          if(aro) aq.premultiply(new THREE.Quaternion().setFromAxisAngle(aBase, d2rL(aro)));
+          if(atx){const aax=new THREE.Vector3(1,0,0).applyQuaternion(aq);
+            aq.premultiply(new THREE.Quaternion().setFromAxisAngle(aax, d2rL(atx)));}
+          if(aty){const aay=new THREE.Vector3(0,1,0).applyQuaternion(aq);
+            aq.premultiply(new THREE.Quaternion().setFromAxisAngle(aay, d2rL(aty)));}
+          al.quaternion.copy(aq);
+          scene.add(al); dynLights.push(al); threeLight=al;
+        }
+      } else {
+        // Point light — omnidirectional glow
+        const pr = (l.pointRadius||0.5);
+        const isHard = l.hard === 'hard';
+        const plIntensity = Math.pow(nb, 1.6) * 18 * (1 + pr * 0.15);
+        const plRange = 5 + pr * 3 + nb * 4;
+        const pl = new THREE.PointLight(hexInt, plIntensity, plRange);
+        pl.position.copy(pos);
+        pl.castShadow = isActive;
+        pl.shadow.mapSize.width = isHard ? 1024 : 256;
+        pl.shadow.mapSize.height = isHard ? 1024 : 256;
+        pl.shadow.radius = isHard ? 1 : 4; // shadow blur
+        scene.add(pl); dynLights.push(pl); threeLight=pl;
+      }
+
+      // Orientation: face toward origin
+      const dir = new THREE.Vector3().sub(pos).normalize();
+      const upv = Math.abs(dir.y) > 0.99 ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,1,0);
+      const q = new THREE.Quaternion().setFromRotationMatrix(
+        new THREE.Matrix4().lookAt(pos, new THREE.Vector3(), upv));
+      const ro=l.roll||0, tx=l.tiltX||0, ty=l.tiltY||0;
+      if(ro) q.premultiply(new THREE.Quaternion().setFromAxisAngle(dir, d2r(ro)));
+      if(tx){const ax=new THREE.Vector3(1,0,0).applyQuaternion(q);q.premultiply(new THREE.Quaternion().setFromAxisAngle(ax,d2r(tx)));}
+      if(ty){const ay=new THREE.Vector3(0,1,0).applyQuaternion(q);q.premultiply(new THREE.Quaternion().setFromAxisAngle(ay,d2r(ty)));}
+
+      const bodyGrp = new THREE.Group();
+      bodyGrp.position.copy(pos);
+      bodyGrp.quaternion.copy(q);
+
+      const icoMat = new THREE.MeshStandardMaterial({
+        color:hexInt, emissive:hexInt, emissiveIntensity: nb*2.5 });
+      const sc = isActive ? 1.0 : 0.6;
+      const ltype = l.type || 'point';
+
+      if (ltype === 'point') {
+        // pointRadius 0.1-3 → icon 0.04-0.22 (직관적으로 커짐)
+        const pr = l.pointRadius || 0.5;
+        const iconR = (0.04 + Math.log1p(pr) * 0.05) * sc;
+        bodyGrp.add(new THREE.Mesh(
+          new THREE.SphereGeometry(iconR, 16, 16), icoMat));
+        // 큰 반경엔 외곽 글로우 링 추가
+        if (pr > 0.5) {
+          const glowR = iconR * 1.6;
+          const gpts = [];
+          for(let j=0;j<=32;j++){const a=(j/32)*Math.PI*2;
+            gpts.push(new THREE.Vector3(Math.cos(a)*glowR,Math.sin(a)*glowR,0));}
+          const gring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(gpts),
+            new THREE.LineBasicMaterial({color:hexInt,transparent:true,opacity:(pr-1)/2*0.6+0.2}));
+          gring.lookAt(camera.position);
+          bodyGrp.add(gring);
+        }
+
+      } else if (ltype === 'spot') {
+        const sz = 0.06 * sc;
+        const coneLen = (0.26 + nb*0.06) * sc;
+        const spotAngle = Math.min(85, Math.max(3, l.angle||45));
+        const coneR = coneLen * Math.tan(d2r(spotAngle/2));
+        // Penumbra: show inner/outer cone rings
+        const innerR = coneR * (1 - (l.penumbra||50)/100 * 0.7);
+        // Head
+        bodyGrp.add(new THREE.Mesh(new THREE.SphereGeometry(sz,10,10), icoMat));
+        // Cone body (open, -Z direction in local space)
+        const coneMesh = new THREE.Mesh(
+          new THREE.ConeGeometry(coneR, coneLen, 20, 1, true),
+          new THREE.MeshStandardMaterial({color:hexInt,emissive:hexInt,
+            emissiveIntensity:nb*0.5,transparent:true,opacity:0.28,side:THREE.DoubleSide}));
+        coneMesh.rotation.x = Math.PI/2;
+        coneMesh.position.z = -coneLen/2;
+        bodyGrp.add(coneMesh);
+        // 4 edge rays
+        for(let a=0;a<4;a++){
+          const ang = d2r(a*90);
+          bodyGrp.add(new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([
+              new THREE.Vector3(0,0,0),
+              new THREE.Vector3(Math.cos(ang)*coneR, Math.sin(ang)*coneR, -coneLen)]),
+            new THREE.LineBasicMaterial({color:hexInt,transparent:true,opacity:0.9})));
+        }
+        // Rim circle
+        const rp=[];
+        for(let j=0;j<=32;j++){const a=(j/32)*Math.PI*2;
+          rp.push(new THREE.Vector3(Math.cos(a)*coneR,Math.sin(a)*coneR,-coneLen));}
+        bodyGrp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(rp),
+          new THREE.LineBasicMaterial({color:hexInt,transparent:true,opacity:0.9})));
+        // Inner penumbra ring (soft edge indicator)
+        const irp=[];
+        for(let j=0;j<=32;j++){const a=(j/32)*Math.PI*2;
+          irp.push(new THREE.Vector3(Math.cos(a)*innerR,Math.sin(a)*innerR,-coneLen));}
+        bodyGrp.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(irp),
+          new THREE.LineBasicMaterial({color:hexInt,transparent:true,opacity:0.45})));
+
+      } else if (ltype === 'area') {
+        const pw = Math.min(0.8, (l.panelW||2)*0.1) * sc, ph = Math.min(0.6, (l.panelH||1.5)*0.1) * sc;
+        // Panel face
+        bodyGrp.add(new THREE.Mesh(new THREE.PlaneGeometry(pw*2,ph*2),
+          new THREE.MeshStandardMaterial({color:hexInt,emissive:hexInt,
+            emissiveIntensity:nb*0.9,transparent:true,opacity:0.55,side:THREE.DoubleSide})));
+        // Frame
+        [[-pw,-ph,pw,-ph],[pw,-ph,pw,ph],[pw,ph,-pw,ph],[-pw,ph,-pw,-ph]].forEach(([x1,y1,x2,y2])=>{
+          bodyGrp.add(new THREE.Line(
+            new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x1,y1,0),new THREE.Vector3(x2,y2,0)]),
+            new THREE.LineBasicMaterial({color:hexInt,transparent:true,opacity:0.95})));
+        });
+        // Normal direction arrow
+        bodyGrp.add(new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,-pw*1.4)]),
+          new THREE.LineBasicMaterial({color:hexInt,transparent:true,opacity:0.8})));
+      }
+
+      gizmoGroup.add(bodyGrp);
+
+      // Connection line
+      gizmoGroup.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), pos.clone()]),
+        new THREE.LineBasicMaterial({color: isActive?hexInt:0x334466,
+          transparent:true, opacity:isActive?0.8:0.22})));
+
+      // Active ring
+      if (isActive) {
+        const rp=[];
+        for(let j=0;j<=32;j++){const a=(j/32)*Math.PI*2;
+          rp.push(new THREE.Vector3(Math.cos(a)*0.13,Math.sin(a)*0.13,0));}
+        const ring=new THREE.Line(new THREE.BufferGeometry().setFromPoints(rp),
+          new THREE.LineBasicMaterial({color:hexInt,transparent:true,opacity:0.9}));
+        ring.position.copy(pos); ring.lookAt(camera.position);
+        gizmoGroup.add(ring);
+      }
+    });
+
+    // Update box emissive
+    const al = lights[activeIdx]||lights[0];
+    if (al && boxMat) {
+      boxMat.emissive.set(parseInt((al.colorHex||'#000').replace('#',''),16));
+      boxMat.emissiveIntensity = (al.bright||100)/100 * 0.1;
+    }
+    scene.add(gizmoGroup);
+  }
+
+  // compat single-light wrapper
+  function buildGizmo(rotH,rotV,roll,tiltX,tiltY,colorHex,bright,lightType,angle,panelW,panelH,dist){
+    buildMulti([{rotH,rotV,roll,tiltX,tiltY,colorHex,bright,type:lightType,angle,panelW,panelH,dist}],0);
+  }
+
+  let raf;
+  (function loop(){ raf=requestAnimationFrame(loop); renderer.render(scene,camera); })();
+
+  new ResizeObserver(()=>{
+    const w=el.clientWidth||300,h=el.clientHeight||220;
+    renderer.setSize(w,h); camera.aspect=w/h; camera.updateProjectionMatrix();
+  }).observe(el);
+
+  return {
+    update: buildGizmo,
+    updateMulti: buildMulti,
+    destroy: ()=>{ cancelAnimationFrame(raf); renderer.dispose(); }
+  };
+}
+
+// ── Init gizmos for gen (g) and edit (e) tabs ─────────────────────
+let _gizmoG = null, _gizmoE = null;
+
+function initLC(p) {
+  // lighting rig tab uses gLightRig3d; edit tab falls back to eLc3d
+  const id = p==='g' ? 'gLightRig3d' : 'eLc3d';
+  const el = document.getElementById(id);
+  if (!el) { console.warn('initLC: container not found:', id); return null; }
+  if (p==='g' && _gizmoG) { _gizmoG.destroy(); _gizmoG=null; }
+  if (p==='e' && _gizmoE) { _gizmoE.destroy(); _gizmoE=null; }
+  const g = mkGizmo(id, p);
+  if (p==='g') _gizmoG = g; else _gizmoE = g;
+  if (g) drawLC(p);
+  return g;
+}
+
+// ════════════════════════════════════════════
+// CAMERA RIG STATE
+// ════════════════════════════════════════════
+const CAM_RIG = {
+  count: 1,
+  yaw: 0,
+  pitch: 0,
+  roll: 0,
+  dist: 7,
+  presetName: '아이레벨',
+};
+
+let _camRig3d = null;  // Three.js gizmo for camera rig
+let _lightRig3d = null; // Three.js gizmo for lighting rig
+
+// ── Tab switcher ──────────────────────────────────────────────────
+function switchRigTab(tab) {
+  const isCam = tab === 'cam';
+  document.getElementById('rigPanelCam').style.display   = isCam ? 'block' : 'none';
+  document.getElementById('rigPanelLight').style.display = isCam ? 'none'  : 'block';
+
+  const btnCam   = document.getElementById('rigTabCam');
+  const btnLight = document.getElementById('rigTabLight');
+  if (btnCam) {
+    btnCam.style.background   = isCam ? 'var(--s2)' : 'var(--s1)';
+    btnCam.style.color        = isCam ? 'var(--acc)' : 'var(--tx3)';
+    btnLight.style.background = isCam ? 'var(--s1)' : 'var(--s2)';
+    btnLight.style.color      = isCam ? 'var(--tx3)' : 'var(--acc2)';
+  }
+
+  // Init 3D viewport when tab first shown
+  setTimeout(() => {
+    if (isCam) {
+      if (!_camRig3d) _camRig3d = initCamRig3d();
+      else drawCamRig();
+    } else {
+      // Always reinit light gizmo when switching to light tab
+      initLC('g');
+    }
+  }, 80);
+}
+
+// ── Camera Rig controls ──────────────────────────────────────────
+function onCamCountChange(v) {
+  CAM_RIG.count = parseInt(v);
+  document.getElementById('gCamCountVal').textContent = v;
+  updateCamInfo();
+  drawCamRig();
+}
+function onCamRigChange(axis, v) {
+  const n = parseFloat(v) || 0;
+  const key = (axis === 'yaw') ? 'yaw' : (axis === 'pitch') ? 'pitch' : (axis === 'roll') ? 'roll' : 'dist';
+  CAM_RIG[key] = n;
+
+  const slId  = (axis === 'yaw') ? 'gCamYawSl'   : (axis === 'pitch') ? 'gCamPitchSl' : (axis === 'roll') ? 'gCamRollSl' : 'gCamDistSl';
+  const numId = (axis === 'yaw') ? 'gCamYawNum'  : (axis === 'pitch') ? 'gCamPitchNum': (axis === 'roll') ? 'gCamRollNum': 'gCamDistNum';
+
+  const sl = document.getElementById(slId), nm = document.getElementById(numId);
+  if (sl) sl.value = n;
+  if (nm) nm.value = n;
+
+  // When user tweaks values manually, treat as custom unless a preset was just applied
+  if (key !== 'dist' && !CAM_RIG._settingPreset) {
+    CAM_RIG.presetName = 'custom';
+    const lbl = document.getElementById('gAngleLbl');
+    if (lbl) lbl.textContent = 'custom';
+  }
+  drawCamRig();
+}
+function setCamPreset(yaw, pitch, name, roll=0) {
+  CAM_RIG._settingPreset = true;
+  CAM_RIG.yaw = yaw;
+  CAM_RIG.pitch = pitch;
+  CAM_RIG.roll = roll;
+  CAM_RIG.presetName = name;
+
+  onCamRigChange('yaw', yaw);
+  onCamRigChange('pitch', pitch);
+  onCamRigChange('roll', roll);
+
+  CAM_RIG._settingPreset = false;
+
+  const lbl = document.getElementById('gAngleLbl');
+  if (lbl) lbl.textContent = name;
+}
+function updateCamInfo() {
+  const el = document.getElementById('gCamInfoTxt');
+  if (el) el.innerHTML = `카메라 ${CAM_RIG.count}대 × 1장 = 총 <b style="color:var(--acc)">${CAM_RIG.count}장</b> 생성`;
+}
+
+// ── Camera Rig 3D (Three.js) ──────────────────────────────────────
+let _camRigScene = null, _camRigRenderer = null, _camRigCamera = null;
+let _camRigGroup = null, _camRigRaf = null;
+let _camRigSubject = null, _camRigSubMat = null;
+let _camRigPovCam = null, _camRigPovRenderer = null;
+let _camRigViewTheta = Math.atan2(4,4), _camRigViewPhi = 0.55, _camRigViewR = 9;
+let _camRigDrag = false, _camRigLX = 0, _camRigLY = 0;
+
+
+function initCamRig3d() {
+  const THREE = window.THREE;
+  if (!THREE) { setTimeout(()=>initCamRig3d(),200); return null; }
+  const el = document.getElementById('gCamRig3d');
+  if (!el) return null;
+  while (el.firstChild) el.removeChild(el.firstChild);
+
+  const W = el.offsetWidth||340, H = el.offsetHeight||280;
+  const renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(W,H);
+  renderer.shadowMap.enabled=true;
+  renderer.setClearColor(0x0a0a18,1);
+  el.appendChild(renderer.domElement);
+  renderer.domElement.style.cssText='width:100%;height:100%;display:block;';
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(22,W/H,0.1,100);
+  const ISO_R=9,ISO_Y=Math.PI/4,ISO_P=Math.atan(1/Math.sqrt(2));
+  camera.position.set(
+    ISO_R*Math.cos(ISO_P)*Math.sin(ISO_Y),
+    ISO_R*Math.sin(ISO_P),
+    ISO_R*Math.cos(ISO_P)*Math.cos(ISO_Y));
+  camera.lookAt(0,0,0);
+
+  const gMat=new THREE.LineBasicMaterial({color:0x1e1e44,transparent:true,opacity:0.85});
+  for(let i=-2;i<=2;i+=0.5){
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(
+      [new THREE.Vector3(-2,0,i),new THREE.Vector3(2,0,i)]),gMat));
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(
+      [new THREE.Vector3(i,0,-2),new THREE.Vector3(i,0,2)]),gMat));
+  }
+
+  const mkLbl=(txt,col)=>{
+    const cv=document.createElement('canvas');cv.width=96;cv.height=36;
+    const ctx=cv.getContext('2d');ctx.font='bold 15px monospace';ctx.fillStyle=col;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,48,18);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({
+      map:new THREE.CanvasTexture(cv),transparent:true,depthTest:false}));
+    sp.scale.set(0.75,0.28,1);return sp;
+  };
+  [[0,0.05,1.6,'FRONT','#4488ff'],[0,0.05,-1.6,'BACK','#6666aa'],
+   [1.6,0.05,0,'RIGHT','#44bb77'],[-1.6,0.05,0,'LEFT','#44bb77'],
+   [0,1.25,0,'TOP','#aaaacc']].forEach(([x,y,z,t,c])=>{
+    const l=mkLbl(t,c);l.position.set(x,y,z);scene.add(l);
+  });
+
+  const subMat=new THREE.MeshStandardMaterial({color:0x334466,roughness:0.5,metalness:0.25});
+  const subBox=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),subMat);
+  subBox.castShadow=true;scene.add(subBox);
+  const fp=new THREE.Mesh(new THREE.PlaneGeometry(0.85,0.85),
+    new THREE.MeshBasicMaterial({color:0x2244aa,transparent:true,opacity:0.28,side:THREE.DoubleSide}));
+  fp.position.set(0,0,0.502);scene.add(fp);
+  scene.add(new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(1,1,1)),
+    new THREE.LineBasicMaterial({color:0x5566aa,transparent:true,opacity:0.7})));
+
+  const mkRing=(R,col,axis)=>{
+    const pts=[];
+    for(let i=0;i<=64;i++){const a=(i/64)*Math.PI*2;
+      pts.push(axis==='h'?new THREE.Vector3(Math.cos(a)*R,0,Math.sin(a)*R)
+                         :new THREE.Vector3(0,Math.sin(a)*R,Math.cos(a)*R));}
+    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({color:col,transparent:true,opacity:0.18}));
+  };
+  scene.add(mkRing(2.2,0x4466ff,'h'));
+  scene.add(mkRing(2.2,0xaa44ff,'v'));
+  scene.add(new THREE.AmbientLight(0xffffff,0.7));
+  scene.add(new THREE.DirectionalLight(0xffffff,0.4));
+
+  _camRigScene=scene;_camRigRenderer=renderer;_camRigCamera=camera;
+
+  // POV preview renderer (offscreen → canvas)
+  const previewCanvas = document.getElementById('gCamPreview');
+  let _povRenderer = null;
+  if (previewCanvas) {
+    _povRenderer = new THREE.WebGLRenderer({ canvas: previewCanvas, antialias: true });
+    _povRenderer.setPixelRatio(1);
+    _povRenderer.setSize(110, 82);
+    _povRenderer.setClearColor(0x06060e, 1);
+  }
+  // POV camera: perspective matching a real camera (FOV 50)
+  const _povCam = new THREE.PerspectiveCamera(50, 110/82, 0.1, 50);
+  _camRigPovCam = _povCam;
+  _camRigPovRenderer = _povRenderer;
+
+  new ResizeObserver(()=>{
+    const w=el.clientWidth||340,h=el.clientHeight||280;
+    renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();
+  }).observe(el);
+
+  if(_camRigRaf) cancelAnimationFrame(_camRigRaf);
+  const loop=()=>{
+    _camRigRaf=requestAnimationFrame(loop);
+    renderer.render(scene,camera);
+    // Render POV preview from first camera position
+    if(_camRigPovRenderer && _camRigPovCam && _camRigScene) {
+      _camRigPovRenderer.render(_camRigScene, _camRigPovCam);
+    }
+  };
+  loop();
+  drawCamRig();
+  return {scene,renderer,camera};
+}
+
+function drawCamRig() {
+  if(!_camRigScene)return;
+  const THREE=window.THREE;if(!THREE)return;
+  if(_camRigGroup)_camRigScene.remove(_camRigGroup);
+  _camRigGroup=new THREE.Group();
+
+  const count=CAM_RIG.count;
+  const radius=0.9+((CAM_RIG.dist||5)-1)/11*2.3;
+  const pitch=CAM_RIG.pitch*Math.PI/180;
+  const baseYaw=CAM_RIG.yaw*Math.PI/180;
+  const rollRad=(CAM_RIG.roll||0)*Math.PI/180;
+
+  for(let i=0;i<count;i++){
+    const yaw=baseYaw+(i/count)*Math.PI*2;
+    const px=radius*Math.cos(pitch)*Math.sin(yaw);
+    const py=radius*Math.sin(pitch);
+    const pz=radius*Math.cos(pitch)*Math.cos(yaw);
+
+    const cg=new THREE.Group();
+    cg.position.set(px,py,pz);
+    cg.lookAt(0,0,0);
+
+    const isFirst=i===0;
+    if(isFirst && rollRad){ cg.rotateZ(rollRad); }
+    const body=new THREE.Mesh(new THREE.BoxGeometry(0.2,0.13,0.15),
+      new THREE.MeshStandardMaterial({color:isFirst?0xff2244:0x8888aa,
+        roughness:0.5,metalness:0.5,transparent:!isFirst,opacity:isFirst?1:0.6}));
+    cg.add(body);
+    const lens=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,0.1,10),
+      new THREE.MeshStandardMaterial({color:0x111122,roughness:0.3,metalness:0.9}));
+    lens.rotation.x=Math.PI/2;lens.position.z=0.11;cg.add(lens);
+    _camRigGroup.add(cg);
+
+    _camRigGroup.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0,0,0),new THREE.Vector3(px,py,pz)]),
+      new THREE.LineBasicMaterial({color:isFirst?0xff2244:0x334477,
+        transparent:true,opacity:isFirst?0.9:0.28})));
+  }
+  _camRigScene.add(_camRigGroup);
+
+  // Update POV camera to match first camera position & look at subject
+  if (_camRigPovCam && CAM_RIG.count > 0) {
+    const yaw0  = CAM_RIG.yaw * Math.PI / 180;
+    const pitch0= CAM_RIG.pitch * Math.PI / 180;
+    const r0    = 0.9 + ((CAM_RIG.dist||5)-1)/11*2.3;
+    const px0 = r0*Math.cos(pitch0)*Math.sin(yaw0);
+    const py0 = r0*Math.sin(pitch0);
+    const pz0 = r0*Math.cos(pitch0)*Math.cos(yaw0);
+    _camRigPovCam.position.set(px0, py0, pz0);
+    _camRigPovCam.up.set(0,1,0);
+    _camRigPovCam.lookAt(0, 0, 0);
+    // Apply roll around the camera's *local* view axis so 0° is always level.
+    _camRigPovCam.rotation.z = 0;
+    if(rollRad){ _camRigPovCam.rotateZ(rollRad); }
+    _camRigPovCam.updateProjectionMatrix();
+  }
+}
+
+// Stub for compatibility with old camera angle function
+function setGAngle(yaw, tilt, name) { setCamPreset(yaw, tilt, name); }
+function gSyncFromSlider(k, v) {}
+function gSyncFromNum(k, v) {}
+function _camSyncUI(p) {}
+function updGLens(v){
+  const mm = parseInt(v);
+  G.lens = isNaN(mm) ? 35 : mm;
+  const lbl=document.getElementById('gLensLbl'); if(lbl) lbl.textContent=G.lens+'mm';
+  const sl=document.getElementById('gLensSl'); if(sl && parseInt(sl.value)!==G.lens) sl.value=G.lens;
+  document.querySelectorAll('#panel-gen .lens-ps .pr-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.textContent)===G.lens);
+  });
+}
+function setGLens(v){ updGLens(v); }
+
+function updELens(v){
+  const mm = parseInt(v);
+  E.lens = isNaN(mm) ? 35 : mm;
+  const lbl=document.getElementById('eLensLbl'); if(lbl) lbl.textContent=E.lens+'mm';
+  const sl=document.getElementById('eLensSl'); if(sl && parseInt(sl.value)!==E.lens) sl.value=E.lens;
+  document.querySelectorAll('#panel-edit .lens-ps .pr-btn').forEach(b=>{
+    b.classList.toggle('active', parseInt(b.textContent)===E.lens);
+  });
+}
+function setELens(v){ updELens(v); }
+
+function setLightDist(p, v) {
+  const s = p==='g' ? G : E;
+  s.distance = parseFloat(v)||5;
+  const sl = document.getElementById(p+'LDistSl'), nm = document.getElementById(p+'LDistNum');
+  if(sl) sl.value=v; if(nm) nm.value=v;
+  drawLC(p);
+}
+
+function cycleActiveLight() {
+  // placeholder for multi-light cycling
+}
+
+function onLightCountChange(v) {
+  document.getElementById('gLightCountVal').textContent = v;
+  // update active dot color
+}
+
+// ════════════════════════════════════════════
+// LIGHT CONTROL FUNCTIONS
+// ════════════════════════════════════════════════
+
+// ── Multi-light state ───────────────────────────
+// LIGHTS: array of independent light objects
+const MAX_LIGHTS = 6;
+let LIGHTS = [{
+  rotH:0, rotV:45, roll:0, tiltX:0, tiltY:0,
+  rotH:0, rotV:30, dist:5, colorHex:'#ffffff', bright:500,
+  type:'point', angle:45, penumbra:50, pointRadius:0.5, panelW:2, panelH:1.5,
+  temp:'daylight', hard:'soft'
+}];
+let ACTIVE_LIGHT = 0; // currently selected light index
+
+function getActiveLight() { return LIGHTS[ACTIVE_LIGHT] || LIGHTS[0]; }
+
+function onLightCountChange(v) {
+  const n = Math.max(1, Math.min(MAX_LIGHTS, parseInt(v)||1));
+  document.getElementById('gLightCountVal').textContent = n;
+  // Add or remove lights
+  while (LIGHTS.length < n) {
+    // Clone active with slight offset
+    const base = LIGHTS[LIGHTS.length-1];
+    LIGHTS.push({...base, rotH: (base.rotH + 45*(LIGHTS.length)) % 360,
+      colorHex: ['#ffffff','#ffaa44','#44aaff','#ff4488','#44ffaa','#ffff44'][LIGHTS.length % 6],
+      type:'point', angle:45, penumbra:50, pointRadius:0.5, panelW:2, panelH:1.5
+    });
+  }
+  while (LIGHTS.length > n) LIGHTS.pop();
+  if (ACTIVE_LIGHT >= LIGHTS.length) ACTIVE_LIGHT = LIGHTS.length - 1;
+  updateLightSelector();
+  syncLightUI();
+  redrawAllLights();
+}
+
+function updateLightSelector() {
+  const el = document.getElementById('gLightSelector');
+  if (!el) return;
+  el.innerHTML = '';
+  LIGHTS.forEach((l, i) => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `width:22px;height:22px;border-radius:50%;border:2px solid ${i===ACTIVE_LIGHT?'#fff':'rgba(255,255,255,0.2)'};
+      background:${l.colorHex};cursor:pointer;transition:all .15s;flex-shrink:0;`;
+    btn.title = `조명 ${i+1}`;
+    btn.onclick = () => { ACTIVE_LIGHT = i; updateLightSelector(); syncLightUI(); };
+    el.appendChild(btn);
+  });
+}
+
+function syncLightUI() {
+  const l = getActiveLight();
+  const p = 'g';
+  const setV = (id, v) => { const e=document.getElementById(id); if(e) e.value=v; };
+  setV(p+'LRotHSl', l.rotH);   setV(p+'LRotHNum', l.rotH);
+  setV(p+'LRotVSl', l.rotV);   setV(p+'LRotVNum', l.rotV);
+  setV(p+'LTiltXSl', l.tiltX); setV(p+'LTiltXNum', l.tiltX);
+  setV(p+'LTiltYSl', l.tiltY); setV(p+'LTiltYNum', l.tiltY);
+  setV(p+'LDistSl', l.dist);   setV(p+'LDistNum', l.dist);
+  var _bs=Math.max(1,Math.min(10,Math.round((l.bright||500)/100)));setV('gBrightSl',_bs);
+  const brightVal = document.getElementById('gBrightVal');
+  if(brightVal)brightVal.textContent=_bs;var _bni=document.getElementById('gBrightNum');if(_bni)_bni.value=_bs;
+  setV('gColorPick', l.colorHex);
+  setV('gColorHex', l.colorHex.toUpperCase());
+  // Type buttons + size panel
+  ['Point','Spot','Area'].forEach(t => {
+    const btn = document.getElementById('gLType'+t);
+    if (!btn) return;
+    const active = l.type === t.toLowerCase();
+    btn.style.background = active ? 'rgba(251,191,36,0.25)' : 'var(--s2)';
+    btn.style.borderColor = active ? 'rgba(251,191,36,0.7)' : 'var(--b1)';
+    btn.style.color = active ? '#fbbf24' : 'var(--tx3)';
+    const panel = document.getElementById('gSize'+t);
+    if (panel) panel.style.display = active ? (t==='Point'?'flex':'flex') : 'none';
+  });
+  // Size values
+  const sp=document.getElementById('gLSizePointSl'),spn=document.getElementById('gLSizePointNum');
+  if(sp)sp.value=l.pointRadius||0.5;if(spn)spn.value=l.pointRadius||0.5;
+  const ss=document.getElementById('gLSizeSpotSl'),ssn=document.getElementById('gLSizeSpotNum');
+  if(ss)ss.value=l.angle||45;if(ssn)ssn.value=l.angle||45;
+  const spe=document.getElementById('gLSpotPenumbraSl'),spen=document.getElementById('gLSpotPenumbraNum');
+  if(spe)spe.value=l.penumbra||50;if(spen)spen.value=l.penumbra||50;
+  const aw=document.getElementById('gLAreaWSl'),awn=document.getElementById('gLAreaWNum');
+  if(aw)aw.value=l.panelW||2;if(awn)awn.value=l.panelW||2;
+  const ah=document.getElementById('gLAreaHSl'),ahn=document.getElementById('gLAreaHNum');
+  if(ah)ah.value=l.panelH||1.5;if(ahn)ahn.value=l.panelH||1.5;
+  // Soft/Hard buttons
+  const sb2=document.getElementById('gSoftBtn'), hb2=document.getElementById('gHardBtn');
+  if(sb2){ sb2.classList.toggle('active', (l.hard||'soft')==='soft'); }
+  if(hb2){ hb2.classList.toggle('active', l.hard==='hard'); }
+  // Dot color
+  const dot = document.getElementById('gActiveLightDot');
+  if (dot) dot.style.background = l.colorHex;
+}
+
+function redrawAllLights() {
+  if (!_gizmoG) return;
+  // Pass all lights to gizmo
+  if (_gizmoG.updateMulti) {
+    _gizmoG.updateMulti(LIGHTS, ACTIVE_LIGHT);
+  } else {
+    const l = getActiveLight();
+    _gizmoG.update(l.rotH, l.rotV, l.roll, l.tiltX, l.tiltY,
+      l.colorHex, l.bright, l.type, l.angle, l.panelW, l.panelH, l.dist);
+  }
+}
+
+// ── _lightSyncUI (compat) ───────────────────────
+function _lightSyncUI(p) { if(p==='g') syncLightUI(); }
+
+// ── Individual setters ──────────────────────────
+function setLightRotH(p, v) {
+  const l=getActiveLight(); l.rotH=parseFloat(v)||0;
+  const sl=document.getElementById(p+'LRotHSl'), nm=document.getElementById(p+'LRotHNum');
+  if(sl)sl.value=l.rotH; if(nm)nm.value=l.rotH;
+  redrawAllLights();
+}
+function setLightRotV(p, v) {
+  const l=getActiveLight(); l.rotV=parseFloat(v)||0;
+  const sl=document.getElementById(p+'LRotVSl'), nm=document.getElementById(p+'LRotVNum');
+  if(sl)sl.value=l.rotV; if(nm)nm.value=l.rotV;
+  redrawAllLights();
+}
+function setLightRoll(p, v) {
+  const l=getActiveLight(); l.roll=parseFloat(v)||0; redrawAllLights();
+}
+function setLightTiltX(p, v) {
+  const l=getActiveLight(); l.tiltX=parseFloat(v)||0;
+  const sl=document.getElementById(p+'LTiltXSl'), nm=document.getElementById(p+'LTiltXNum');
+  if(sl)sl.value=l.tiltX; if(nm)nm.value=l.tiltX;
+  redrawAllLights();
+}
+function setLightTiltY(p, v) {
+  const l=getActiveLight(); l.tiltY=parseFloat(v)||0;
+  const sl=document.getElementById(p+'LTiltYSl'), nm=document.getElementById(p+'LTiltYNum');
+  if(sl)sl.value=l.tiltY; if(nm)nm.value=l.tiltY;
+  redrawAllLights();
+}
+function setLightDist(p, v) {
+  const l=getActiveLight(); l.dist=parseFloat(v)||5;
+  const sl=document.getElementById(p+'LDistSl'), nm=document.getElementById(p+'LDistNum');
+  if(sl)sl.value=l.dist; if(nm)nm.value=l.dist;
+  redrawAllLights();
+}
+function setLightType(p, t) {
+  const l=getActiveLight(); l.type=t;
+  ['Point','Spot','Area'].forEach(tt => {
+    const btn=document.getElementById(p+'LType'+tt);
+    if(!btn)return;
+    const active=tt.toLowerCase()===t;
+    btn.style.background=active?'rgba(251,191,36,0.25)':'var(--s2)';
+    btn.style.borderColor=active?'rgba(251,191,36,0.7)':'var(--b1)';
+    btn.style.color=active?'#fbbf24':'var(--tx3)';
+    const panel=document.getElementById('gSize'+tt);
+    if(panel) panel.style.display=active?'flex':'none';
+  });
+  redrawAllLights();
+}
+function setLightAngle(p, v) {
+  const l=getActiveLight(); l.angle=parseFloat(v)||45; redrawAllLights();
+}
+function setLightSize(p, type, v) {
+  const l=getActiveLight(); const n=parseFloat(v)||1;
+  if(type==='point'){
+    l.pointRadius=Math.max(0.05,Math.min(30,n));
+    const sl=document.getElementById('gLSizePointSl'),nm=document.getElementById('gLSizePointNum');
+    if(sl)sl.value=l.pointRadius;if(nm)nm.value=l.pointRadius;
+  } else if(type==='spot'){
+    l.angle=Math.max(1,Math.min(120,n));
+    const sl=document.getElementById('gLSizeSpotSl'),nm=document.getElementById('gLSizeSpotNum');
+    if(sl)sl.value=l.angle;if(nm)nm.value=l.angle;
+  }
+  redrawAllLights();
+}
+function setLightPenumbra(p, v) {
+  const l=getActiveLight(); l.penumbra=Math.max(0,Math.min(100,parseFloat(v)||50));
+  redrawAllLights();
+}
+function setLightAreaW(p, v) {
+  const l=getActiveLight(); l.panelW=Math.max(0.2,parseFloat(v)||2);
+  const sl=document.getElementById('gLAreaWSl'),nm=document.getElementById('gLAreaWNum');
+  if(sl)sl.value=l.panelW;if(nm)nm.value=l.panelW;
+  redrawAllLights();
+}
+function setLightAreaH(p, v) {
+  const l=getActiveLight(); l.panelH=Math.max(0.2,parseFloat(v)||1.5);
+  const sl=document.getElementById('gLAreaHSl'),nm=document.getElementById('gLAreaHNum');
+  if(sl)sl.value=l.panelH;if(nm)nm.value=l.panelH;
+  redrawAllLights();
+}
+function setLightBright(p,v){var st=Math.max(1,Math.min(10,parseInt(v)||5));var l=getActiveLight();l.bright=st*100;var sl=document.getElementById(p+"BrightSl");if(sl)sl.value=st;var bv=document.getElementById(p+"BrightVal");if(bv)bv.textContent=st;var bn=document.getElementById(p+"BrightNum");if(bn)bn.value=st;redrawAllLights();}
+function setLightBrightNum(p, v) { setLightBright(p,v); }
+function setLightHard(p, t) {
+  const l = getActiveLight(); l.hard = t;
+  const sb = document.getElementById(p+'SoftBtn');
+  const hb = document.getElementById(p+'HardBtn');
+  if (sb) { sb.classList.toggle('active', t==='soft'); }
+  if (hb) { hb.classList.toggle('active', t==='hard'); }
+  redrawAllLights();
+}
+function setLightColorPick(p, v) {
+  const l=getActiveLight(); l.colorHex=v;
+  const hex=document.getElementById('gColorHex'); if(hex)hex.value=v.toUpperCase();
+  updateLightSelector();
+  redrawAllLights();
+}
+function setLightColorHex(p, v) {
+  if(!/^#[0-9a-fA-F]{6}$/.test(v)) return;
+  const l=getActiveLight(); l.colorHex=v;
+  const pick=document.getElementById('gColorPick'); if(pick)pick.value=v;
+  updateLightSelector();
+  redrawAllLights();
+}
+function setLightTemp(p, t) {
+  const l=getActiveLight(); l.temp=t;
+  const TEMPS={daylight:'#fff5e6',tungsten:'#ff9944',cool:'#aaccff',neon:'#ff44cc'};
+  l.colorHex=TEMPS[t]||'#ffffff';
+  const pick=document.getElementById('gColorPick'); if(pick)pick.value=l.colorHex;
+  const hex=document.getElementById('gColorHex'); if(hex)hex.value=l.colorHex.toUpperCase();
+  updateLightSelector();
+  redrawAllLights();
+}
+function setLightPreset(p, preset) {
+  const presets={
+    top:{rotH:0,rotV:0},front:{rotH:0,rotV:90},
+    right:{rotH:90,rotV:45},left:{rotH:-90,rotV:45},
+    back:{rotH:180,rotV:30},bottom:{rotH:0,rotV:180}
+  };
+  const l=getActiveLight();
+  if(presets[preset]){l.rotH=presets[preset].rotH;l.rotV=presets[preset].rotV;}
+  syncLightUI(); redrawAllLights();
+}
+function cycleActiveLight() {
+  ACTIVE_LIGHT = (ACTIVE_LIGHT+1) % LIGHTS.length;
+  updateLightSelector(); syncLightUI();
+}
+
+// ── drawLC / initSphere / drawSphere stubs ───────
+function drawLC(p) {
+  const l=getActiveLight();
+  const g=p==='g'?_gizmoG:_gizmoE;
+  if(!g)return;
+  if(g.updateMulti) g.updateMulti(LIGHTS, ACTIVE_LIGHT);
+  else g.update(l.rotH,l.rotV,l.roll,l.tiltX,l.tiltY,l.colorHex,l.bright,l.type,l.angle,l.panelW,l.panelH,l.dist);
+}
+
+function _sphereState(p){ return p==='e'?E:G; }
+function _sphereIds(p){
+  if(p==='e') return {canvas:'eSphereCanvas', preview:'ePreviewCanvas', rotSl:'eRotSl', rotNum:'eRotNum',
+                      tiltSl:'eTiltSl', tiltNum:'eTiltNum', rollSl:'eRollSl', rollNum:'eRollNum',
+                      angleLbl:'eAngleLbl'};
+  // (generate sphere not used in this UI, but keep for safety)
+  return {canvas:'gSphereCanvas', preview:'gPreviewCanvas', rotSl:'gRotSl', rotNum:'gRotNum',
+          tiltSl:'gTiltSl', tiltNum:'gTiltNum', rollSl:'gRollSl', rollNum:'gRollNum',
+          angleLbl:'gAngleLbl'};
+}
+
+function _classifyAngle(rot, tilt){
+  // Simple heuristic labels
+  const a = Math.abs(tilt);
+  if(a >= 70) return tilt>0 ? '버즈아이' : '웜즈아이';
+  if(tilt >= 25) return '하이앵글';
+  if(tilt <= -25) return '로우앵글';
+  // rear shot heuristic
+  const r = ((rot%360)+360)%360;
+  if(r>150 && r<210) return '후면샷';
+  return '아이레벨';
+}
+
+function _syncSphereUI(p){
+  const S=_sphereState(p), ids=_sphereIds(p);
+  const rot=Math.round(S.rotation||0), tilt=Math.round(S.tilt||0), roll=Math.round(S.roll||0);
+  const rs=document.getElementById(ids.rotSl), rn=document.getElementById(ids.rotNum);
+  const ts=document.getElementById(ids.tiltSl), tn=document.getElementById(ids.tiltNum);
+  const ls=document.getElementById(ids.rollSl), ln=document.getElementById(ids.rollNum);
+  if(rs) rs.value=rot; if(rn) rn.value=rot;
+  if(ts) ts.value=tilt; if(tn) tn.value=tilt;
+  if(ls) ls.value=roll; if(ln) ln.value=roll;
+  const lbl=document.getElementById(ids.angleLbl);
+  if(lbl) lbl.textContent = S.angleName || _classifyAngle(rot,tilt);
+}
+
+function _resizeCanvasToCSS(canvas){
+  const dpr=window.devicePixelRatio||1;
+  const w=Math.max(1, Math.floor(canvas.clientWidth*dpr));
+  const h=Math.max(1, Math.floor(canvas.clientHeight*dpr));
+  if(canvas.width!==w || canvas.height!==h){ canvas.width=w; canvas.height=h; }
+  return {w,h,dpr};
+}
+
+function _sphereSetFromXY(p, x, y){
+  const ids=_sphereIds(p);
+  const c=document.getElementById(ids.canvas); if(!c) return;
+  const r=_resizeCanvasToCSS(c);
+  const rect=c.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  const cx=r.w/2, cy=r.h/2;
+  const px=(x-rect.left)*dpr, py=(y-rect.top)*dpr;
+  const dx=px-cx, dy=py-cy;
+  const rad=Math.min(cx,cy)*0.82;
+  const dist=Math.min(rad, Math.hypot(dx,dy));
+  // azimuth
+  let rot = Math.atan2(dx, -dy)*180/Math.PI; // top = 0
+  rot = Math.max(-180, Math.min(180, rot));
+  // polar -> tilt
+  let tilt = -(dy/rad)*90;
+  tilt = Math.max(-90, Math.min(90, tilt));
+  const S=_sphereState(p);
+  S.rotation = Math.round(rot);
+  S.tilt = Math.round(tilt);
+  if(!S.angleName || S.angleName==='아이레벨' || S.angleName==='하이앵글' || S.angleName==='로우앵글' || S.angleName==='후면샷' || S.angleName==='버즈아이' || S.angleName==='웜즈아이'){
+    S.angleName = _classifyAngle(S.rotation, S.tilt);
+  }
+  _syncSphereUI(p);
+  drawSphere(p);
+}
+
+function initSphere(p){
+  const ids=_sphereIds(p);
+  const canvas=document.getElementById(ids.canvas);
+  if(!canvas) return;
+  const S=_sphereState(p);
+  // initial sync
+  _syncSphereUI(p);
+
+  const down=(ev)=>{
+    SD[p].drag=true;
+    const e = ev.touches? ev.touches[0] : ev;
+    _sphereSetFromXY(p, e.clientX, e.clientY);
+  };
+  const move=(ev)=>{
+    if(!SD[p].drag) return;
+    const e = ev.touches? ev.touches[0] : ev;
+    _sphereSetFromXY(p, e.clientX, e.clientY);
+  };
+  const up=()=>{ SD[p].drag=false; };
+
+  canvas.onmousedown=down;
+  canvas.onmousemove=move;
+  window.addEventListener('mouseup', up);
+  canvas.ontouchstart=(ev)=>{ ev.preventDefault(); down(ev); };
+  canvas.ontouchmove=(ev)=>{ ev.preventDefault(); move(ev); };
+  canvas.ontouchend=up;
+
+  window.addEventListener('resize', ()=>drawSphere(p), {passive:true});
+  drawSphere(p);
+}
+
+function drawSphere(p){
+  const ids=_sphereIds(p);
+  const canvas=document.getElementById(ids.canvas);
+  const pv=document.getElementById(ids.preview);
+  if(!canvas) return;
+  const {w,h}= _resizeCanvasToCSS(canvas);
+  const ctx=canvas.getContext('2d');
+  const cx=w/2, cy=h/2;
+  const rad=Math.min(cx,cy)*0.82;
+
+  // bg
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#05050b';
+  ctx.fillRect(0,0,w,h);
+
+  // sphere circle
+  ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
+  ctx.strokeStyle='rgba(255,255,255,0.18)'; ctx.lineWidth=2;
+  ctx.stroke();
+
+  // grid
+  ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+  for(let i=1;i<=3;i++){
+    const rr=rad*(i/4);
+    ctx.beginPath(); ctx.arc(cx,cy,rr,0,Math.PI*2); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.moveTo(cx-rad,cy); ctx.lineTo(cx+rad,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,cy-rad); ctx.lineTo(cx,cy+rad); ctx.stroke();
+
+  // direction point
+  const S=_sphereState(p);
+  const rot=(S.rotation||0)*Math.PI/180;
+  const tilt=(S.tilt||0)*Math.PI/180;
+  const px = cx + rad*Math.sin(rot)*Math.cos(tilt);
+  const py = cy - rad*Math.sin(tilt);
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py);
+  ctx.strokeStyle='rgba(232,255,71,0.25)'; ctx.lineWidth=2; ctx.stroke();
+
+  ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2);
+  ctx.fillStyle='rgba(232,255,71,0.9)'; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=2; ctx.stroke();
+
+  // roll hint arrow
+  const roll=(S.roll||0)*Math.PI/180;
+  const ar = 18;
+  const ax = px + ar*Math.cos(roll);
+  const ay = py + ar*Math.sin(roll);
+  ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(ax,ay);
+  ctx.strokeStyle='rgba(167,139,250,0.55)'; ctx.lineWidth=2; ctx.stroke();
+
+  // preview (simple horizon)
+  if(pv){
+    const {w:pw,h:ph}= _resizeCanvasToCSS(pv);
+    const pctx=pv.getContext('2d');
+    pctx.clearRect(0,0,pw,ph);
+    pctx.fillStyle='#000'; pctx.fillRect(0,0,pw,ph);
+    pctx.save();
+    pctx.translate(pw/2, ph/2);
+    pctx.rotate(roll);
+    pctx.strokeStyle='rgba(255,255,255,0.5)'; pctx.lineWidth=2;
+    pctx.beginPath(); pctx.moveTo(-pw*0.45,0); pctx.lineTo(pw*0.45,0); pctx.stroke();
+    pctx.restore();
+    // dot for tilt (vertical)
+    const ty = ph/2 - Math.sin(tilt)* (ph*0.35);
+    pctx.fillStyle='rgba(232,255,71,0.9)';
+    pctx.beginPath(); pctx.arc(pw/2, ty, 3.5, 0, Math.PI*2); pctx.fill();
+  }
+}
+
+// Edit-orbit UI handlers
+function eSyncFromSlider(kind, v){
+  const n=parseFloat(v)||0;
+  if(kind==='rot') E.rotation=n;
+  else if(kind==='tilt') E.tilt=n;
+  else if(kind==='roll') E.roll=n;
+  E.angleName = _classifyAngle(E.rotation, E.tilt);
+  _syncSphereUI('e');
+  drawSphere('e');
+}
+function eSyncFromNum(kind, v){ eSyncFromSlider(kind, v); }
+
+function setEAngle(a,b,name){
+  // Interpret dutch: use roll=a, tilt=b
+  if(name==='더치'){
+    E.roll = parseFloat(a)||0;
+    E.tilt = parseFloat(b)||0;
+    E.rotation = 0;
+  }else{
+    E.rotation = parseFloat(a)||0;
+    E.tilt = parseFloat(b)||0;
+    E.roll = 0;
+  }
+  E.angleName = name || _classifyAngle(E.rotation, E.tilt);
+  _syncSphereUI('e');
+  drawSphere('e');
+}
+
+
+// ── Reference Upload (shared across tabs) ──────────────────────────────
+// REF stores dataURL by canonical key (e.g., "styleRef0"). Multiple DOM slots can render the same key.
+// Edit tab slots call triggerRef('styleRef0','eStyleRef0') etc.
+var REF = {}, _refKey = "", _refDom = "";
+var REF_DOMS = {}; // key -> Set(domIds)
+
+function _regRefDom(key, domId){
+  if(!REF_DOMS[key]) REF_DOMS[key] = new Set();
+  REF_DOMS[key].add(domId);
+}
+function _listRefDomIds(key){
+  const s = REF_DOMS[key];
+  if(!s) return [];
+  return Array.from(s);
+}
+function _parseDataUrl(dataUrl){
+  // "data:image/png;base64,AAAA"
+  const m = /^data:([^;]+);base64,(.+)$/i.exec(dataUrl||'');
+  if(!m) return null;
+  return { mime: m[1], b64: m[2] };
+}
+function _refLabelForKey(key){
+  if(/^styleRef\d+/.test(key)) return "STYLE";
+  if(/^motionRef\d+/.test(key)) return "MOTION/COMPOSITION";
+  if(/^objRef\d+/.test(key)) return "OBJECT";
+  if(/^subjectRef\d+/.test(key)) return "SUBJECT";
+  return "REFERENCE";
+}
+
+function triggerRef(key, domId){
+  _refKey = key;
+  _refDom = domId || key;
+  _regRefDom(key, domId || key);
+  var inp = document.getElementById("refFileIn");
+  if(inp){ inp.value=""; inp.click(); }
+}
+
+function onRefFile(e){
+  var f = e.target.files[0];
+  if(!f || !_refKey) return;
+  var key = _refKey;
+  var r = new FileReader();
+  r.onload = function(ev){
+    REF[key] = ev.target.result;
+    _renderRefKey(key);
+  };
+  r.readAsDataURL(f);
+}
+
+function _renderRefKey(key){
+  // Ensure canonical gen-slot exists too (if present)
+  _regRefDom(key, key);
+  const domIds = _listRefDomIds(key);
+  const url = REF[key];
+
+  domIds.forEach((sid)=>{
+    var sl=document.getElementById(sid);
+    if(!sl) return;
+
+    if(!url){
+      // clear UI
+      while(sl.firstChild) sl.removeChild(sl.firstChild);
+      var sv=document.createElementNS("http://www.w3.org/2000/svg","svg");
+      sv.setAttribute("viewBox","0 0 14 14");sv.setAttribute("fill","none");
+      sv.setAttribute("stroke","currentColor");sv.setAttribute("stroke-width","1.3");
+      function ln(x1,y1,x2,y2){var l=document.createElementNS("http://www.w3.org/2000/svg","line");
+        l.setAttribute("x1",x1);l.setAttribute("y1",y1);l.setAttribute("x2",x2);l.setAttribute("y2",y2);sv.appendChild(l);}
+      ln(7,2.5,7,11.5);ln(2.5,7,11.5,7);
+      sl.appendChild(sv);
+      (function(k,d){ sl.onclick=function(){ triggerRef(k,d); }; })(key, sid);
+      return;
+    }
+
+    // render image
+    while(sl.firstChild) sl.removeChild(sl.firstChild);
+    var img=document.createElement("img");img.src=url;img.className="ref-img";sl.appendChild(img);
+    var del=document.createElement("div");del.className="ref-del";del.innerHTML="&times;";
+    (function(k){
+      del.onclick=function(ev){ ev.stopPropagation(); delete REF[k]; _renderRefKey(k); };
+    })(key);
+    sl.appendChild(del);
+    sl.onclick=null;
+  });
+}
+
+// Backward-compat wrappers (existing code calls these)
+function _rRef(sid,url){ REF[sid]=url; _renderRefKey(sid); }
+function _clRef(sid){ delete REF[sid]; _renderRefKey(sid); }
+
+function init(){
+  G.style="photo";G.comp="중앙";G.lens=35;
+  LIGHTS[0].rotH=0;LIGHTS[0].rotV=30;LIGHTS[0].dist=5;LIGHTS[0].bright=500;
+  CAM_RIG.count=1;CAM_RIG.yaw=0;CAM_RIG.pitch=0;CAM_RIG.roll=0;CAM_RIG.dist=7;CAM_RIG.presetName="아이레벨";
+  renderStyleGrid();
+  E.style = G.style; E.ratio = G.ratio;
+  renderStyleGridE(); syncERatioUI();
+  renderCompGrid('g',G);
+  renderCompGrid('e',E);
+  updGShot(3);updEShot(3);
+  document.getElementById('gModelTxt').textContent='나노바나나 (무료)';
+  document.getElementById('eModelTxt').textContent='나노바나나 (무료)';
+  setGenGrid('1x1');
+  updateCamInfo();
+  updatePrimaryButtons();
+  mountRig('gen');
+  setTimeout(()=>{updateLightSelector();syncLightUI();},200);
+  // Register Edit-tab reference slots (so uploads show up in both tabs)
+  [['styleRef0','eStyleRef0'],['styleRef1','eStyleRef1'],['styleRef2','eStyleRef2'],
+   ['motionRef0','eMotionRef0'],['motionRef1','eMotionRef1'],['motionRef2','eMotionRef2'],
+   ['objRef0','eObjRef0'],['objRef1','eObjRef1'],['objRef2','eObjRef2'],
+   ['subjectRef0','eSubjectRef0'],['subjectRef1','eSubjectRef1'],['subjectRef2','eSubjectRef2']]
+    .forEach(pair=>_regRefDom(pair[0], pair[1]));
+
+  // Init camera rig 3D after THREE loads
+  const tryInit = () => {
+    const THREE = window.THREE;
+    if (!THREE) { setTimeout(tryInit, 100); return; }
+    switchRigTab('cam');
+  };
+  setTimeout(tryInit, 50);
+}
+
+init();
+
+</script>
+</body>
+</html>
