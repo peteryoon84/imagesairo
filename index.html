@@ -55,9 +55,9 @@ header{position:sticky;top:0;z-index:200;background:rgba(7,7,15,0.95);backdrop-f
 .mpill-name{font-family:'DM Mono',monospace;font-size:0.67rem;font-weight:500;color:var(--tx2);}
 .mpill.active .mpill-name{color:var(--acc);}
 .mbadge{font-family:'DM Mono',monospace;font-size:0.5rem;padding:0.07rem 0.35rem;border-radius:3px;}
-.mbadge.free{background:rgba(0,227,150,0.15);color:var(--green);}
 .mbadge.fast{background:rgba(78,205,196,0.15);color:var(--acc3);}
 .mbadge.pro{background:rgba(167,139,250,0.15);color:var(--acc4);}
+.mbadge.price{background:rgba(255,255,255,0.07);color:var(--tx3);}
 .mpill-desc{font-size:0.56rem;color:var(--tx3);line-height:1.3;}
 
 /* MAIN */
@@ -402,17 +402,20 @@ img.ref-img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;bo
     </div>
     <div class="model-pills">
       <button class="mpill active" id="mp0" onclick="selModel('gemini-2.5-flash-image','mp0')">
-        <div class="mpill-head"><span class="mpill-name">나노바나나</span><span class="mbadge free">무료</span></div>
-        <div class="mpill-desc">gemini-2.5-flash-image · 500회/일 무료 · 학생용</div>
+        <div class="mpill-head"><span class="mpill-name">나노바나나</span><span class="mbadge price">≈₩54/장</span></div>
+        <div class="mpill-desc">gemini-2.5-flash-image · 1K px · $0.039/img</div>
       </button>
       <button class="mpill" id="mp1" onclick="selModel('gemini-3.1-flash-image-preview','mp1')">
-        <div class="mpill-head"><span class="mpill-name">나노바나나 2</span><span class="mbadge fast">FAST</span></div>
-        <div class="mpill-desc">gemini-3.1-flash-image-preview · 기본 추천</div>
+        <div class="mpill-head"><span class="mpill-name">나노바나나 2</span><span class="mbadge fast">≈₩97/장</span></div>
+        <div class="mpill-desc">gemini-3.1-flash-image-preview · 1K px · $0.067/img</div>
       </button>
       <button class="mpill" id="mp2" onclick="selModel('gemini-3-pro-image-preview','mp2')">
         <div class="mpill-head"><span class="mpill-name">나노바나나 프로</span><span class="mbadge pro">PRO</span></div>
-        <div class="mpill-desc">gemini-3-pro-image-preview · 최고화질 · 유료</div>
+        <div class="mpill-desc">gemini-3-pro-image-preview · 2K~4K · ≈₩195~₩349/장</div>
       </button>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--tx3);padding:0.3rem 0.2rem;">
+      💡 <a href="https://cloud.google.com/free" target="_blank" style="color:#00e396;text-decoration:none;">Google Cloud 신규가입 시 ₩428,361 크레딧 90일 무료 제공</a> — 크레딧 소진 전까지 무료로 사용 가능
     </div>
     <!-- GENERATE button in header -->
     <div id="gActionWrap" style="display:flex;align-items:center;gap:0.6rem;margin-left:auto;padding:0.3rem 0;">
@@ -420,7 +423,7 @@ img.ref-img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;bo
         <svg viewBox="0 0 14 14" fill="currentColor"><path d="M7 1l1.2 3.8L12 7l-3.8 1.2L7 12l-1.2-3.8L2 7l3.8-1.2z"/></svg>
         <span id="gBtnLabel">GENERATE</span>
       </button>
-      <div class="model-line"><div class="mdot"></div><span id="gModelTxt">나노바나나</span></div>
+      <div class="model-line"><div class="mdot"></div><span id="gModelTxt">나노바나나 · ≈₩54/장</span></div>
     </div>
   </div>
 </div>
@@ -1573,9 +1576,9 @@ function selModel(id,bid){
   document.querySelectorAll('.mpill').forEach(b=>b.classList.remove('active'));
   document.getElementById(bid).classList.add('active');
   const n={
-    'gemini-2.5-flash-image':'나노바나나 (무료)',
-    'gemini-3.1-flash-image-preview':'나노바나나 2',
-    'gemini-3-pro-image-preview':'나노바나나 프로'
+    'gemini-2.5-flash-image':'나노바나나 · ≈₩54/장',
+    'gemini-3.1-flash-image-preview':'나노바나나 2 · ≈₩97/장',
+    'gemini-3-pro-image-preview':'나노바나나 프로 · ≈₩195/장'
   }[id];
   document.getElementById('gModelTxt').textContent=n;
   document.getElementById('eModelTxt').textContent=n;
@@ -5197,8 +5200,8 @@ function init(){
   updELens(E.lens);
   updGAperture(G.aperture);
   updEAperture(E.aperture);
-  document.getElementById('gModelTxt').textContent='나노바나나 (무료)';
-  document.getElementById('eModelTxt').textContent='나노바나나 (무료)';
+  document.getElementById('gModelTxt').textContent='나노바나나 · ≈₩54/장';
+  document.getElementById('eModelTxt').textContent='나노바나나 · ≈₩54/장';
   setGenGrid('1x1');
   updateCamInfo();
   updatePrimaryButtons();
